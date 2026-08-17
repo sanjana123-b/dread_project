@@ -1,0 +1,22 @@
+{% extends 'analysis/base.html' %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1>Create Account</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+        {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary" style="width:100%;">Sign Up</button>
+  </form>
+  <p style="text-align:center; margin-top:16px; color:var(--text-dim);">
+    Already have an account? <a href="{% url 'login' %}">Log in</a>
+  </p>
+</div>
+{% endblock %}

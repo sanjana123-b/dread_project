@@ -1,0 +1,79 @@
+{% extends 'analysis/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Overview of all your threat models</p>
+  </div>
+  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="num">{{ projects.count }}</div><div class="label">Projects</div></div>
+  <div class="stat-card"><div class="num">{{ total_threats }}</div><div class="label">Total Threats</div></div>
+  <div class="stat-card critical"><div class="num">{{ critical_count }}</div><div class="label">Critical Risks</div></div>
+  <div class="stat-card high"><div class="num">{{ high_count }}</div><div class="label">High Risks</div></div>
+  <div class="stat-card"><div class="num">{{ open_count }}</div><div class="label">Open Threats</div></div>
+</div>
+
+{% if total_threats > 0 %}
+<div class="card">
+  <strong>Risk Distribution</strong>
+  <div class="risk-bar">
+    {% if overall_breakdown.Critical %}<div style="background:#dc2626; width:{% widthratio overall_breakdown.Critical total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.High %}<div style="background:#f97316; width:{% widthratio overall_breakdown.High total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.Medium %}<div style="background:#eab308; width:{% widthratio overall_breakdown.Medium total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.Low %}<div style="background:#22c55e; width:{% widthratio overall_breakdown.Low total_threats 100 %}%"></div>{% endif %}
+  </div>
+  <div style="display:flex; gap:16px; margin-top:10px; font-size:0.85rem; color:var(--text-dim);">
+    <span>&#9679; Critical: {{ overall_breakdown.Critical }}</span>
+    <span>&#9679; High: {{ overall_breakdown.High }}</span>
+    <span>&#9679; Medium: {{ overall_breakdown.Medium }}</span>
+    <span>&#9679; Low: {{ overall_breakdown.Low }}</span>
+  </div>
+</div>
+{% endif %}
+
+{% if top_threats %}
+<div class="card">
+  <strong>Top 5 Highest-Risk Threats</strong>
+  <table style="margin-top:10px;">
+    <thead><tr><th>Threat</th><th>Project</th><th>Score</th><th>Level</th></tr></thead>
+    <tbody>
+    {% for t in top_threats %}
+      <tr>
+        <td><a href="{% url 'threat_detail' t.pk %}">{{ t.title }}</a></td>
+        <td>{{ t.project.name }}</td>
+        <td>{{ t.dread_score }}</td>
+        <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<h2 style="font-size:1.2rem; margin-top:32px;">Your Projects</h2>
+{% if projects %}
+<table>
+  <thead><tr><th>Name</th><th>Threats</th><th>Avg Risk</th><th>Updated</th><th></th></tr></thead>
+  <tbody>
+  {% for p in projects %}
+    <tr>
+      <td><a href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></td>
+      <td>{{ p.threat_count }}</td>
+      <td>{{ p.average_risk }}</td>
+      <td>{{ p.updated_at|date:"M d, Y" }}</td>
+      <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <p>No projects yet. Create your first threat model to get started.</p>
+  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
+</div>
+{% endif %}
+{% endblock %}

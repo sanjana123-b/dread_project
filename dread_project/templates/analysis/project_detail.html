@@ -1,0 +1,67 @@
+{% extends 'analysis/base.html' %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ project.name }}</h1>
+    <p class="subtitle">{{ project.description }}</p>
+  </div>
+  <div>
+    <a href="{% url 'threat_create' project.pk %}" class="btn btn-primary">+ Add Threat</a>
+    <a href="{% url 'export_csv' project.pk %}" class="btn">Export CSV</a>
+    <a href="{% url 'project_edit' project.pk %}" class="btn">Edit</a>
+    <a href="{% url 'project_delete' project.pk %}" class="btn btn-danger">Delete</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="num">{{ project.threat_count }}</div><div class="label">Total Threats</div></div>
+  <div class="stat-card"><div class="num">{{ project.average_risk }}</div><div class="label">Avg DREAD Score</div></div>
+  <div class="stat-card critical"><div class="num">{{ project.risk_breakdown.Critical }}</div><div class="label">Critical</div></div>
+  <div class="stat-card high"><div class="num">{{ project.risk_breakdown.High }}</div><div class="label">High</div></div>
+</div>
+
+<form method="get" class="filters">
+  <input type="text" name="q" placeholder="Search threats..." value="{{ search }}">
+  <select name="status">
+    <option value="">All statuses</option>
+    <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+    <option value="mitigated" {% if status_filter == 'mitigated' %}selected{% endif %}>Mitigated</option>
+    <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Risk Accepted</option>
+    <option value="false_positive" {% if status_filter == 'false_positive' %}selected{% endif %}>False Positive</option>
+  </select>
+  <select name="risk">
+    <option value="">All risk levels</option>
+    <option value="Critical" {% if risk_filter == 'Critical' %}selected{% endif %}>Critical</option>
+    <option value="High" {% if risk_filter == 'High' %}selected{% endif %}>High</option>
+    <option value="Medium" {% if risk_filter == 'Medium' %}selected{% endif %}>Medium</option>
+    <option value="Low" {% if risk_filter == 'Low' %}selected{% endif %}>Low</option>
+  </select>
+  <button type="submit" class="btn">Filter</button>
+</form>
+
+{% if threats %}
+<table>
+  <thead>
+    <tr><th>Threat</th><th>STRIDE</th><th>Score</th><th>Risk</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for t in threats %}
+    <tr>
+      <td><a href="{% url 'threat_detail' t.pk %}">{{ t.title }}</a></td>
+      <td>{{ t.get_stride_category_display }}</td>
+      <td>{{ t.dread_score }}</td>
+      <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
+      <td><span class="badge badge-status">{{ t.get_status_display }}</span></td>
+      <td><a href="{% url 'threat_detail' t.pk %}" class="btn btn-sm">View</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <p>No threats found. Add one to start your DREAD analysis.</p>
+  <a href="{% url 'threat_create' project.pk %}" class="btn btn-primary">+ Add Threat</a>
+</div>
+{% endif %}
+{% endblock %}

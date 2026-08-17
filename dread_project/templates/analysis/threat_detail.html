@@ -1,0 +1,54 @@
+{% extends 'analysis/base.html' %}
+{% block title %}{{ threat.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ threat.title }}</h1>
+    <p class="subtitle">Project: <a href="{% url 'project_detail' threat.project.pk %}">{{ threat.project.name }}</a> &middot; {{ threat.get_stride_category_display }}</p>
+  </div>
+  <div>
+    <a href="{% url 'threat_edit' threat.pk %}" class="btn">Edit</a>
+    <a href="{% url 'threat_delete' threat.pk %}" class="btn btn-danger">Delete</a>
+  </div>
+</div>
+
+<div class="card" style="display:flex; align-items:center; gap:28px; flex-wrap:wrap;">
+  <div>
+    <div class="score-display" style="color:{{ threat.risk_color }};">{{ threat.dread_score }}</div>
+    <div class="help-text">DREAD Score / 10</div>
+  </div>
+  <div>
+    <span class="badge badge-{{ threat.risk_level|lower }}" style="font-size:1rem; padding:6px 16px;">{{ threat.risk_level }} Risk</span>
+  </div>
+  <div>
+    <span class="badge badge-status">{{ threat.get_status_display }}</span>
+  </div>
+</div>
+
+<div class="card">
+  <strong>Rating Breakdown</strong>
+  <div style="margin-top:10px;">
+    <div class="dread-breakdown-row"><span>Damage</span><strong>{{ threat.damage }}/10</strong></div>
+    <div class="dread-breakdown-row"><span>Reproducibility</span><strong>{{ threat.reproducibility }}/10</strong></div>
+    <div class="dread-breakdown-row"><span>Exploitability</span><strong>{{ threat.exploitability }}/10</strong></div>
+    <div class="dread-breakdown-row"><span>Affected Users</span><strong>{{ threat.affected_users }}/10</strong></div>
+    <div class="dread-breakdown-row"><span>Discoverability</span><strong>{{ threat.discoverability }}/10</strong></div>
+  </div>
+</div>
+
+{% if threat.description %}
+<div class="card">
+  <strong>Description</strong>
+  <p style="margin-bottom:0; margin-top:8px; color:var(--text-dim);">{{ threat.description|linebreaks }}</p>
+</div>
+{% endif %}
+
+{% if threat.mitigation %}
+<div class="card">
+  <strong>Mitigation Plan</strong>
+  <p style="margin-bottom:0; margin-top:8px; color:var(--text-dim);">{{ threat.mitigation|linebreaks }}</p>
+</div>
+{% endif %}
+
+<p class="help-text">Created by {{ threat.created_by }} on {{ threat.created_at|date:"M d, Y" }} &middot; Last updated {{ threat.updated_at|date:"M d, Y" }}</p>
+{% endblock %}
