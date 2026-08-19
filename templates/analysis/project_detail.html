@@ -41,23 +41,25 @@
 </form>
 
 {% if threats %}
-<table>
-  <thead>
-    <tr><th>Threat</th><th>STRIDE</th><th>Score</th><th>Risk</th><th>Status</th><th></th></tr>
-  </thead>
-  <tbody>
-  {% for t in threats %}
-    <tr>
-      <td><a href="{% url 'threat_detail' t.pk %}">{{ t.title }}</a></td>
-      <td>{{ t.get_stride_category_display }}</td>
-      <td>{{ t.dread_score }}</td>
-      <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
-      <td><span class="badge badge-status">{{ t.get_status_display }}</span></td>
-      <td><a href="{% url 'threat_detail' t.pk %}" class="btn btn-sm">View</a></td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr><th>Threat</th><th>STRIDE</th><th>Score</th><th>Risk</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for t in threats %}
+      <tr>
+        <td><a href="{% url 'threat_detail' t.pk %}"><strong>{{ t.title }}</strong></a></td>
+        <td>{{ t.get_stride_category_display }}</td>
+        <td>{{ t.dread_score }}</td>
+        <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
+        <td><span class="badge badge-status">{{ t.get_status_display }}</span></td>
+        <td><a href="{% url 'threat_detail' t.pk %}" class="btn btn-sm">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
 <div class="empty-state">
   <p>No threats found. Add one to start your DREAD analysis.</p>

@@ -6,20 +6,22 @@
   <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
 </div>
 {% if projects %}
-<table>
-  <thead><tr><th>Name</th><th>Description</th><th>Threats</th><th>Avg Risk</th><th></th></tr></thead>
-  <tbody>
-  {% for p in projects %}
-    <tr>
-      <td><a href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></td>
-      <td>{{ p.description|truncatechars:60 }}</td>
-      <td>{{ p.threat_count }}</td>
-      <td>{{ p.average_risk }}</td>
-      <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="table-container">
+  <table>
+    <thead><tr><th>Name</th><th>Description</th><th>Threats</th><th>Avg Risk</th><th></th></tr></thead>
+    <tbody>
+    {% for p in projects %}
+      <tr>
+        <td><a href="{% url 'project_detail' p.pk %}"><strong>{{ p.name }}</strong></a></td>
+        <td>{{ p.description|truncatechars:60 }}</td>
+        <td>{{ p.threat_count }}</td>
+        <td>{{ p.average_risk }}</td>
+        <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
 <div class="empty-state">
   <p>No projects yet.</p>

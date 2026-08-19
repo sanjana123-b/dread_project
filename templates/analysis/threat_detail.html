@@ -39,14 +39,14 @@
 {% if threat.description %}
 <div class="card">
   <strong>Description</strong>
-  <p style="margin-bottom:0; margin-top:8px; color:var(--text-dim);">{{ threat.description|linebreaks }}</p>
+  <p style="margin-bottom:0; margin-top:8px; color:var(--text-muted);">{{ threat.description|linebreaks }}</p>
 </div>
 {% endif %}
 
 {% if threat.mitigation %}
 <div class="card">
   <strong>Mitigation Plan</strong>
-  <p style="margin-bottom:0; margin-top:8px; color:var(--text-dim);">{{ threat.mitigation|linebreaks }}</p>
+  <p style="margin-bottom:0; margin-top:8px; color:var(--text-muted);">{{ threat.mitigation|linebreaks }}</p>
 </div>
 {% endif %}
 

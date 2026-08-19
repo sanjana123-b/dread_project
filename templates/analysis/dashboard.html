@@ -21,10 +21,10 @@
 <div class="card">
   <strong>Risk Distribution</strong>
   <div class="risk-bar">
-    {% if overall_breakdown.Critical %}<div style="background:#dc2626; width:{% widthratio overall_breakdown.Critical total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.High %}<div style="background:#f97316; width:{% widthratio overall_breakdown.High total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.Medium %}<div style="background:#eab308; width:{% widthratio overall_breakdown.Medium total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.Low %}<div style="background:#22c55e; width:{% widthratio overall_breakdown.Low total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.Critical %}<div style="background:var(--critical-color); width:{% widthratio overall_breakdown.Critical total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.High %}<div style="background:var(--high-color); width:{% widthratio overall_breakdown.High total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.Medium %}<div style="background:var(--medium-color); width:{% widthratio overall_breakdown.Medium total_threats 100 %}%"></div>{% endif %}
+    {% if overall_breakdown.Low %}<div style="background:var(--low-color); width:{% widthratio overall_breakdown.Low total_threats 100 %}%"></div>{% endif %}
   </div>
   <div style="display:flex; gap:16px; margin-top:10px; font-size:0.85rem; color:var(--text-dim);">
     <span>&#9679; Critical: {{ overall_breakdown.Critical }}</span>
@@ -38,38 +38,42 @@
 {% if top_threats %}
 <div class="card">
   <strong>Top 5 Highest-Risk Threats</strong>
-  <table style="margin-top:10px;">
-    <thead><tr><th>Threat</th><th>Project</th><th>Score</th><th>Level</th></tr></thead>
-    <tbody>
-    {% for t in top_threats %}
-      <tr>
-        <td><a href="{% url 'threat_detail' t.pk %}">{{ t.title }}</a></td>
-        <td>{{ t.project.name }}</td>
-        <td>{{ t.dread_score }}</td>
-        <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-container" style="margin-top:16px;">
+    <table>
+      <thead><tr><th>Threat</th><th>Project</th><th>Score</th><th>Level</th></tr></thead>
+      <tbody>
+      {% for t in top_threats %}
+        <tr>
+          <td><a href="{% url 'threat_detail' t.pk %}"><strong>{{ t.title }}</strong></a></td>
+          <td>{{ t.project.name }}</td>
+          <td>{{ t.dread_score }}</td>
+          <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endif %}
 
 <h2 style="font-size:1.2rem; margin-top:32px;">Your Projects</h2>
 {% if projects %}
-<table>
-  <thead><tr><th>Name</th><th>Threats</th><th>Avg Risk</th><th>Updated</th><th></th></tr></thead>
-  <tbody>
-  {% for p in projects %}
-    <tr>
-      <td><a href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></td>
-      <td>{{ p.threat_count }}</td>
-      <td>{{ p.average_risk }}</td>
-      <td>{{ p.updated_at|date:"M d, Y" }}</td>
-      <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="table-container">
+  <table>
+    <thead><tr><th>Name</th><th>Threats</th><th>Avg Risk</th><th>Updated</th><th></th></tr></thead>
+    <tbody>
+    {% for p in projects %}
+      <tr>
+        <td><a href="{% url 'project_detail' p.pk %}"><strong>{{ p.name }}</strong></a></td>
+        <td>{{ p.threat_count }}</td>
+        <td>{{ p.average_risk }}</td>
+        <td>{{ p.updated_at|date:"M d, Y" }}</td>
+        <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
 <div class="empty-state">
   <p>No projects yet. Create your first threat model to get started.</p>
