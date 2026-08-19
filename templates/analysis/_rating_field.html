@@ -1,0 +1,26 @@
+<noscript>
+  <div class="field {% if field.errors %}has-error{% endif %}">
+    <label class="field__label" for="{{ field.id_for_label }}">
+      {{ label }}
+    </label>
+    {{ field }}
+    {% for error in field.errors %}<span class="field__error" role="alert"><span aria-hidden="true">⚠</span> {{ error }}</span>{% endfor %}
+  </div>
+</noscript>
+
+<div class="rating js-rating" data-rating data-field="{{ field.html_name }}" style="display: none;">
+  <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:5 }}">
+  <div class="rating__head">
+    <label class="rating__label" for="{{ field.id_for_label }}">
+      <span class="rating__badge" data-badge>{{ letter }}</span> {{ label }}
+    </label>
+    <span class="rating__value" data-value aria-live="polite">{{ field.value|default:5 }}</span>
+  </div>
+  <div class="rating__strip" role="slider" tabindex="0" aria-valuemin="1" aria-valuemax="10" aria-valuenow="{{ field.value|default:5 }}" aria-label="{{ label }} rating">
+    {% for i in "1234567890"|make_list %}<span class="rating__seg" data-seg data-index="{{ forloop.counter }}"></span>{% endfor %}
+  </div>
+  <div class="rating__hints">
+    <span>1 — {{ hint1 }}</span>
+    <span>10 — {{ hint10 }}</span>
+  </div>
+</div>

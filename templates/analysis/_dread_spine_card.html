@@ -1,0 +1,7 @@
+<svg width="{{ W }}" height="{{ total_h }}" viewBox="0 0 {{ W }} {{ total_h }}" role="img" aria-label="{{ label }}" style="display:block;overflow:visible">
+  {% for s in segments %}
+    <rect x="{{ s.x }}" y="0" width="{{ s.w }}" height="{{ s.h }}" fill="rgba(255,255,255,0.06)" rx="2"/>
+    <rect x="{{ s.x }}" y="{{ s.y }}" width="{{ s.w }}" height="{{ s.fill_h }}" fill="{{ s.color }}" rx="2"/>
+    <text x="{{ s.cx }}" y="{{ label_y }}" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10" font-family="JetBrains Mono, Courier New, monospace" font-weight="500">{{ s.letter }}</text>
+  {% endfor %}
+</svg>

@@ -1,0 +1,105 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}Edit Profile | ThreatScope{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 24px;">
+    <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 6px;">
+      <li><a href="{% url 'dashboard' %}" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">Dashboard</a></li>
+      <li style="font-size: 12px; color: var(--text-disabled);" aria-hidden="true">/</li>
+      <li><a href="#" aria-current="page" style="font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none;">Profile</a></li>
+    </ol>
+  </nav>
+
+  <header class="mb-6">
+    <h1 class="font-display" style="font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em;">Edit Profile</h1>
+    <p style="margin-top: 4px; font-size: 14px; line-height: 22px; color: var(--text-muted);">
+      Update your personal details and upload a profile picture.
+    </p>
+  </header>
+
+  <form method="post" enctype="multipart/form-data" style="max-width: 600px;">
+    {% csrf_token %}
+    <div class="glass-card" style="padding: 28px;">
+      <div class="flex-col" style="gap: 18px;">
+        {% if user_form.errors or profile_form.errors %}
+        <div class="form-errors" role="alert">
+          <p class="form-errors__title">Fix the following errors to continue:</p>
+          <ul>
+            {% for field in user_form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+            {% for error in user_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            {% for field in profile_form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+            {% for error in profile_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <div class="field {% if user_form.username.errors %}has-error{% endif %}">
+          <label class="field__label" for="{{ user_form.username.id_for_label }}">
+            {{ user_form.username.label }} <span class="field__required" aria-hidden="true">*</span>
+          </label>
+          {{ user_form.username }}
+          {% if user_form.username.help_text %}<span class="field__hint">{{ user_form.username.help_text }}</span>{% endif %}
+        </div>
+
+        <div class="field {% if user_form.first_name.errors %}has-error{% endif %}">
+          <label class="field__label" for="{{ user_form.first_name.id_for_label }}">{{ user_form.first_name.label }}</label>
+          {{ user_form.first_name }}
+        </div>
+
+        <div class="field {% if user_form.last_name.errors %}has-error{% endif %}">
+          <label class="field__label" for="{{ user_form.last_name.id_for_label }}">{{ user_form.last_name.label }}</label>
+          {{ user_form.last_name }}
+        </div>
+        
+        <div class="field {% if user_form.email.errors %}has-error{% endif %}">
+          <label class="field__label" for="{{ user_form.email.id_for_label }}">{{ user_form.email.label }}</label>
+          {{ user_form.email }}
+        </div>
+
+        <div class="field {% if profile_form.profile_picture.errors %}has-error{% endif %}">
+          <label class="field__label" for="{{ profile_form.profile_picture.id_for_label }}">{{ profile_form.profile_picture.label }}</label>
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 4px;">
+            <div id="profile-pic-preview-container" style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 1px solid var(--border-hairline); flex-shrink: 0;">
+              {% if user.profile.profile_picture %}
+                <img id="profile-pic-preview" src="{{ user.profile.profile_picture.url }}" alt="Profile preview" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div id="profile-pic-preview" style="width: 100%; height: 100%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; color: white;">
+                  {{ user.username|make_list|first|upper }}
+                </div>
+              {% endif %}
+            </div>
+            <div style="flex-grow: 1;">
+              {{ profile_form.profile_picture }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex" style="gap: 8px; justify-content: flex-end; padding-top: 4px;">
+          <a href="{% url 'dashboard' %}" class="btn btn--secondary btn--md">Cancel</a>
+          <button type="submit" class="btn btn--primary btn--md">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"][name="profile_picture"]');
+    if (fileInput) {
+      fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const container = document.getElementById('profile-pic-preview-container');
+            container.innerHTML = '<img id="profile-pic-preview" src="' + e.target.result + '" alt="Profile preview" style="width: 100%; height: 100%; object-fit: cover;">';
+          };
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

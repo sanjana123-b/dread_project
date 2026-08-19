@@ -1,13 +1,49 @@
-{% extends 'analysis/base.html' %}
-{% block title %}Confirm Delete{% endblock %}
+{% extends "analysis/base.html" %}
+
+{% block title %}Delete {{ item_name }} | ThreatScope{% endblock %}
+
 {% block content %}
-<div class="page-header"><h1>Delete {{ type|title }}</h1></div>
-<div class="card">
-  <p>Are you sure you want to delete "<strong>{{ object }}</strong>"? This cannot be undone.</p>
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Yes, delete</button>
-    <a href="javascript:history.back()" class="btn">Cancel</a>
-  </form>
+<div class="page-container" style="max-width: 520px; margin: 0 auto; padding-top: 32px;">
+  <div class="glass-card" style="padding: 32px; border: 1px solid rgba(255,61,113,0.2);">
+    <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255,61,113,0.1); border: 1px solid rgba(255,61,113,0.25); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--risk-critical); margin-bottom: 20px;" aria-hidden="true">
+      ⚠
+    </div>
+    
+    <h1 class="font-display" style="font-size: 22px; font-weight: 600; color: var(--risk-critical); margin-bottom: 16px;">
+      Delete {% if type == 'threat' %}Threat{% else %}Project{% endif %}?
+    </h1>
+    
+    <p style="font-size: 14px; line-height: 22px; color: var(--text-secondary); margin-bottom: 16px;">
+      You are about to permanently delete <strong style="color: var(--text-primary);">{{ item_name }}</strong>.
+      {% if type == 'project' and object.threats.count > 0 %}
+        This also deletes {{ object.threats.count }} associated threat{{ object.threats.count|pluralize }}.
+      {% endif %}
+      This action cannot be undone.
+    </p>
+    
+    <div style="background: rgba(255,61,113,0.06); border: 1px solid rgba(255,61,113,0.15); border-radius: 8px; padding: 12px 14px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
+      Type <span class="font-mono" style="font-size: 12px; color: var(--text-primary);">{{ item_name }}</span> to confirm.
+    </div>
+    
+    <input type="text" id="confirm-input" class="input-base" style="margin-bottom: 20px;" placeholder='Type "{{ item_name }}" to confirm' aria-label="Type {{ item_name }} to confirm deletion" autocomplete="off">
+    
+    <form method="post" style="display: flex; gap: 8px; justify-content: flex-end; margin: 0;">
+      {% csrf_token %}
+      <a href="{% if type == 'threat' %}{% url 'threat_detail' pk=object.pk %}{% else %}{% url 'project_detail' pk=object.pk %}{% endif %}" class="btn btn--secondary btn--md">Cancel</a>
+      <button type="submit" id="delete-btn" class="btn btn--danger btn--md" disabled>Delete {% if type == 'threat' %}threat{% else %}project{% endif %}</button>
+    </form>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const input = document.getElementById('confirm-input');
+  const btn = document.getElementById('delete-btn');
+  const expected = "{{ item_name|escapejs }}";
+  
+  input.addEventListener('input', (e) => {
+    btn.disabled = (e.target.value.trim() !== expected.trim());
+  });
+</script>
 {% endblock %}

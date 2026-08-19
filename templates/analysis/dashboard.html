@@ -1,218 +1,158 @@
-{% extends 'analysis/base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% extends "analysis/base.html" %}
+{% load threatscope %}
+
+{% block title %}Dashboard | ThreatScope{% endblock %}
+
 {% block content %}
-<div class="flex items-center justify-between flex-wrap gap-4 mb-8">
-  <div>
-    <h1 class="font-display" style="font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em;">
-      Welcome back.
-    </h1>
-    <p style="margin: 4px 0 0; font-size: 14px; color: var(--text-muted);">
-      {{ projects.count }} project{{ projects.count|pluralize }} &middot; {{ total_threats }} threat{{ total_threats|pluralize }} tracked
-    </p>
-  </div>
-  <a href="{% url 'project_create' %}" class="btn btn-primary btn-md" style="box-shadow: 0 0 20px var(--accent-glow);">
-    + New project
-  </a>
-</div>
-
-{% if projects %}
-  <div class="stat-grid">
-    <!-- StatCard: Total Projects -->
-    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
-      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
-        Total Projects
-      </span>
-      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
-        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em;">
-          {{ projects.count }}
-        </span>
-      </div>
-    </div>
-    
-    <!-- StatCard: Total Threats -->
-    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
-      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
-        Total Threats
-      </span>
-      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
-        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em;">
-          {{ total_threats }}
-        </span>
-      </div>
-    </div>
-    
-    <!-- StatCard: Critical Risks -->
-    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
-      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
-        Critical Risks
-      </span>
-      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
-        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: {% if critical_count > 0 %}var(--risk-critical){% else %}var(--text-primary){% endif %}; letter-spacing: -0.01em;">
-          {{ critical_count }}
-        </span>
-      </div>
-    </div>
-    
-    <!-- StatCard: High Risks -->
-    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
-      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
-        High Risks
-      </span>
-      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
-        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: {% if high_count > 0 %}var(--risk-high){% else %}var(--text-primary){% endif %}; letter-spacing: -0.01em;">
-          {{ high_count }}
-        </span>
-      </div>
-    </div>
-  </div>
-
-  {% if total_threats > 0 %}
-  <!-- Risk Distribution -->
-  <div class="glass-card" style="padding: 24px; margin-bottom: 32px;">
-    <div style="margin-bottom: 16px;">
-      <h2 class="font-display" style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);">
-        Risk Distribution
-      </h2>
-    </div>
+<div class="page-container">
+  <header class="flex justify-between items-center mb-8 gap-4" style="flex-wrap: wrap;">
     <div>
-      <div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 1px;" role="img">
-        {% if overall_breakdown.Critical %}<div style="flex: 0 0 {% widthratio overall_breakdown.Critical total_threats 100 %}%; background: var(--risk-critical); min-width: 4px;"></div>{% endif %}
-        {% if overall_breakdown.High %}<div style="flex: 0 0 {% widthratio overall_breakdown.High total_threats 100 %}%; background: var(--risk-high); min-width: 4px;"></div>{% endif %}
-        {% if overall_breakdown.Medium %}<div style="flex: 0 0 {% widthratio overall_breakdown.Medium total_threats 100 %}%; background: var(--risk-medium); min-width: 4px;"></div>{% endif %}
-        {% if overall_breakdown.Low %}<div style="flex: 0 0 {% widthratio overall_breakdown.Low total_threats 100 %}%; background: var(--risk-low); min-width: 4px;"></div>{% endif %}
-      </div>
-      <div style="display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-critical);"></div>
-          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.Critical|default:0 }} Critical</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-high);"></div>
-          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.High|default:0 }} High</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-medium);"></div>
-          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.Medium|default:0 }} Medium</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-low);"></div>
-          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.Low|default:0 }} Low</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if top_threats %}
-  <!-- Top Threats -->
-  <div class="glass-card" style="overflow: hidden;">
-    <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-hairline); display: flex; align-items: center; justify-content: space-between;">
-      <h2 class="font-display" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);">
-        Top 5 Highest-Risk Threats
-      </h2>
-    </div>
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Threat</th>
-            <th>Project</th>
-            <th style="text-align: right;">Score</th>
-            <th>Risk</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in top_threats %}
-          <tr class="tr-hover" style="border-top: 1px solid var(--border-hairline);">
-            <td style="padding: 12px 24px;">
-              <a href="{% url 'threat_detail' t.pk %}" style="font-family: var(--font-body); font-size: 13px; font-weight: 500; display: block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                {{ t.title }}
-              </a>
-            </td>
-            <td style="padding: 12px 16px;">
-              <span style="font-family: var(--font-body); font-size: 12px; color: var(--text-muted);">
-                {{ t.project.name }}
-              </span>
-            </td>
-            <td style="padding: 12px 16px; text-align: right;">
-              <span class="font-mono" style="font-size: 14px; font-weight: 600; color: var(--risk-{{ t.risk_level|lower }});">
-                {{ t.dread_score|floatformat:1 }}
-              </span>
-            </td>
-            <td style="padding: 12px 16px;">
-              <span class="risk-pill compact {{ t.risk_level|lower }}">
-                {% if t.risk_level == 'Critical' %}<span style="font-size:7px;">◆</span>
-                {% elif t.risk_level == 'High' %}<span style="font-size:7px;">▲</span>
-                {% elif t.risk_level == 'Medium' %}<span style="font-size:7px;">■</span>
-                {% elif t.risk_level == 'Low' %}<span style="font-size:7px;">●</span>{% endif %}
-                {{ t.risk_level }}
-              </span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Projects -->
-  <div class="glass-card" style="overflow: hidden;">
-    <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-hairline); display: flex; align-items: center; justify-content: space-between;">
-      <h2 class="font-display" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);">
-        Your Projects
-      </h2>
-    </div>
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Threats</th>
-            <th style="text-align: right;">Avg Risk</th>
-            <th>Updated</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in projects %}
-          <tr class="tr-hover" style="border-top: 1px solid var(--border-hairline);">
-            <td style="padding: 12px 24px;">
-              <a href="{% url 'project_detail' p.pk %}" style="font-family: var(--font-body); font-size: 13px; font-weight: 500;">
-                {{ p.name }}
-              </a>
-            </td>
-            <td style="padding: 12px 16px;">
-              <span class="font-mono" style="font-size: 13px;">{{ p.threat_count }}</span>
-            </td>
-            <td style="padding: 12px 16px; text-align: right;">
-              <span class="font-mono" style="font-size: 13px;">{{ p.average_risk|floatformat:1 }}</span>
-            </td>
-            <td style="padding: 12px 16px;">
-              <span style="font-size: 12px; color: var(--text-muted);">{{ p.updated_at|date:"M d, Y" }}</span>
-            </td>
-            <td style="padding: 12px 16px; text-align: right;">
-              <a href="{% url 'project_detail' p.pk %}" class="btn btn-ghost btn-sm">View &rarr;</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-{% else %}
-  <div class="empty-state glass-card">
-    <div>
-      <h3 class="font-display" style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text-primary);">No projects yet</h3>
-      <p style="margin: 6px 0 0; font-size: 14px; color: var(--text-muted); max-width: 340px; line-height: 22px;">
-        Create your first project to start cataloguing threats and calculating DREAD scores.
+      <h1 class="font-display" style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">
+        Welcome back, {{ user.first_name|default:user.username }}.
+      </h1>
+      <p style="margin-top: 4px; font-size: 14px; color: var(--text-muted);">
+        {% if projects.count > 0 %}
+          {{ projects.count }} project{{ projects.count|pluralize }} · {{ total_threats }} threat{{ total_threats|pluralize }} tracked
+        {% else %}
+          You have no projects yet. Create one to start modelling threats.
+        {% endif %}
       </p>
     </div>
-    <a href="{% url 'project_create' %}" class="btn btn-primary btn-lg" style="box-shadow: 0 0 20px var(--accent-glow);">
-      + Create first project
+    <a href="{% url 'project_create' %}" class="btn btn--primary btn--md btn--glow">
+      <span aria-hidden="true">+</span> New project
     </a>
-  </div>
-{% endif %}
+  </header>
 
+  <main id="main-content">
+    {% if projects.count == 0 and total_threats == 0 %}
+      <div class="stat-grid mb-8" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">Total Projects</span>
+          <span class="stat-card__value">0</span>
+        </div>
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">Total Threats</span>
+          <span class="stat-card__value">0</span>
+        </div>
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">Critical Risks</span>
+          <span class="stat-card__value">0</span>
+        </div>
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">High Risks</span>
+          <span class="stat-card__value">0</span>
+        </div>
+      </div>
+      
+      <div class="glass-card flex-col items-center" style="padding: 64px 32px; text-align: center; gap: 16px;">
+        <h2 class="font-display" style="font-size: 18px; font-weight: 600; color: var(--text-primary);">No projects yet</h2>
+        <p style="font-size: 14px; line-height: 22px; color: var(--text-muted); max-width: 340px; margin-top: 6px;">
+          Create your first project to start cataloguing threats and calculating DREAD scores.
+        </p>
+        <a href="{% url 'project_create' %}" class="btn btn--primary btn--lg btn--glow">
+          <span aria-hidden="true">+</span> Create first project
+        </a>
+      </div>
+    {% else %}
+      <div class="stat-grid mb-8" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">Total Projects</span>
+          <span class="stat-card__value">{{ projects.count }}</span>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">Total Threats</span>
+          <span class="stat-card__value">{{ total_threats }}</span>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">Critical Risks</span>
+          <div class="stat-card__row">
+            <span class="stat-card__value" {% if risk_counts.Critical %}style="color: var(--risk-critical);"{% endif %}>{{ risk_counts.Critical|default:0 }}</span>
+            {% if risk_counts.Critical %}
+            <span class="stat-card__delta font-mono" style="color: var(--risk-critical);" aria-label="{{ risk_counts.Critical }} open">↑ {{ risk_counts.Critical }} open</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">High Risks</span>
+          <div class="stat-card__row">
+            <span class="stat-card__value" {% if risk_counts.High %}style="color: var(--risk-high);"{% endif %}>{{ risk_counts.High|default:0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card mb-8" style="padding: 24px;">
+        <h2 class="font-display" style="font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;">Risk Distribution</h2>
+        {% risk_bar risk_counts %}
+      </div>
+
+      <div class="glass-card" style="overflow: hidden;">
+        <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-hairline);" class="flex justify-between items-center">
+          <h2 class="font-display" style="font-size: 16px; font-weight: 600;">Top 5 Highest-Risk Threats</h2>
+          <a href="{% url 'project_list' %}" class="btn btn--ghost btn--sm">View all →</a>
+        </div>
+        
+        <table class="data-table threat-table-desktop">
+          <thead>
+            <tr>
+              <th scope="col">Threat</th>
+              <th scope="col">Project</th>
+              <th scope="col">DREAD</th>
+              <th scope="col" class="is-right">Score</th>
+              <th scope="col">Risk</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for threat in top_threats|slice:":5" %}
+            <tr onclick="window.location='{% url 'threat_detail' pk=threat.pk %}'">
+              <td>
+                <a href="{% url 'threat_detail' pk=threat.pk %}" class="cell-title">{{ threat.title }}</a>
+              </td>
+              <td style="font-size: 12px; color: var(--text-muted);">{{ threat.project.name }}</td>
+              <td>{% dread_spine_micro threat %}</td>
+              <td class="is-right">
+                <span class="cell-score" style="color: {{ threat.risk_level|risk_color }};">{{ threat.dread_score|floatformat:1 }}</span>
+              </td>
+              <td>
+                <span class="risk-pill risk-pill--compact" aria-label="Risk level: {{ threat.risk_level }}" style="background: {{ threat.risk_level|risk_tint }}; border: 1px solid {{ threat.risk_level|risk_color }}; color: {{ threat.risk_level|risk_color }};">
+                  <span class="risk-pill__glyph" aria-hidden="true">{{ threat.risk_level|risk_glyph }}</span>{{ threat.risk_level }}
+                </span>
+              </td>
+              <td>
+                <span class="status-chip" aria-label="Status: {{ threat.get_status_display }}" style="background: {{ threat.get_status_display|status_bg }}; border: 1px solid {{ threat.get_status_display|status_color }}33; color: {{ threat.get_status_display|status_color }};">
+                  <span class="status-chip__dot" aria-hidden="true"></span>{{ threat.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No threats found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="threat-table-mobile">
+          {% for threat in top_threats|slice:":5" %}
+          <a href="{% url 'threat_detail' pk=threat.pk %}" style="display: flex; flex-direction: column; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border-hairline); text-decoration: none;" class="focus-ring">
+            <div style="font-size: 13px; font-weight: 500; line-height: 20px; color: var(--text-primary);">{{ threat.title }}</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              {% dread_spine_micro threat %}
+              <span class="font-mono" style="font-size: 13px; font-weight: 600; color: {{ threat.risk_level|risk_color }};">{{ threat.dread_score|floatformat:1 }}</span>
+              <span class="risk-pill risk-pill--compact" aria-label="Risk level: {{ threat.risk_level }}" style="background: {{ threat.risk_level|risk_tint }}; border: 1px solid {{ threat.risk_level|risk_color }}; color: {{ threat.risk_level|risk_color }};">
+                <span class="risk-pill__glyph" aria-hidden="true">{{ threat.risk_level|risk_glyph }}</span>{{ threat.risk_level }}
+              </span>
+              <span class="status-chip" aria-label="Status: {{ threat.get_status_display }}" style="background: {{ threat.get_status_display|status_bg }}; border: 1px solid {{ threat.get_status_display|status_color }}33; color: {{ threat.get_status_display|status_color }};">
+                <span class="status-chip__dot" aria-hidden="true"></span>{{ threat.get_status_display }}
+              </span>
+            </div>
+          </a>
+          {% empty %}
+          <div style="text-align: center; color: var(--text-muted); padding: 24px;">No threats found.</div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </main>
+</div>
 {% endblock %}

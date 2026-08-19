@@ -1,0 +1,23 @@
+<div class="spine-hero" role="img" aria-label="{{ label }}">
+  <div class="spine-hero__track">
+    <div class="spine-hero__threshold" style="top: {{ threshold_top }}%"></div>
+    {% for s in segments %}
+      <div class="spine-hero__col">
+        <div class="spine-hero__bg"></div>
+        <div class="spine-hero__fill" style="--fill: {{ s.fill_pct }}%; background: {{ s.color }}"></div>
+        <div class="spine-hero__value{% if not s.inside %} spine-hero__value--above{% endif %}"
+             style="{% if s.inside %}color: rgba(255,255,255,0.9){% else %}color: {{ s.color }}; --fill: {{ s.fill_pct }}%{% endif %}">{{ s.value }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="spine-hero__names">
+    {% for s in segments %}
+      <div class="spine-hero__name">{{ s.name }}</div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+requestAnimationFrame(function () {
+  document.querySelectorAll('.spine-hero').forEach(function (el) { el.classList.add('is-mounted'); });
+});
+</script>
