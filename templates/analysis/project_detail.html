@@ -1,69 +1,166 @@
 {% extends 'analysis/base.html' %}
 {% block title %}{{ project.name }}{% endblock %}
 {% block content %}
-<div class="page-header">
+<div class="flex items-center justify-between flex-wrap gap-4 mb-8">
   <div>
-    <h1>{{ project.name }}</h1>
-    <p class="subtitle">{{ project.description }}</p>
+    <a href="{% url 'project_list' %}" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; display: inline-block;">&larr; Back to Projects</a>
+    <h1 class="font-display" style="font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em;">
+      {{ project.name }}
+    </h1>
+    <p style="margin: 4px 0 0; font-size: 14px; color: var(--text-muted); max-width: 600px;">
+      {{ project.description }}
+    </p>
   </div>
-  <div>
-    <a href="{% url 'threat_create' project.pk %}" class="btn btn-primary">+ Add Threat</a>
-    <a href="{% url 'export_csv' project.pk %}" class="btn">Export CSV</a>
-    <a href="{% url 'project_edit' project.pk %}" class="btn">Edit</a>
-    <a href="{% url 'project_delete' project.pk %}" class="btn btn-danger">Delete</a>
+  <div style="display: flex; gap: 8px;">
+    <a href="{% url 'project_edit' project.pk %}" class="btn btn-secondary btn-md">Edit</a>
+    <a href="{% url 'export_csv' project.pk %}" class="btn btn-secondary btn-md">CSV</a>
+    <a href="{% url 'project_delete' project.pk %}" class="btn btn-danger btn-md">Delete</a>
+    <a href="{% url 'threat_create' project.pk %}" class="btn btn-primary btn-md" style="box-shadow: 0 0 20px var(--accent-glow);">+ Add Threat</a>
   </div>
 </div>
 
 <div class="stat-grid">
-  <div class="stat-card"><div class="num">{{ project.threat_count }}</div><div class="label">Total Threats</div></div>
-  <div class="stat-card"><div class="num">{{ project.average_risk }}</div><div class="label">Avg DREAD Score</div></div>
-  <div class="stat-card critical"><div class="num">{{ project.risk_breakdown.Critical }}</div><div class="label">Critical</div></div>
-  <div class="stat-card high"><div class="num">{{ project.risk_breakdown.High }}</div><div class="label">High</div></div>
+  <!-- StatCard: Total Threats -->
+  <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+    <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+      Total Threats
+    </span>
+    <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+      <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em;">
+        {{ project.threat_count }}
+      </span>
+    </div>
+  </div>
+  
+  <!-- StatCard: Avg DREAD Score -->
+  <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+    <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+      Avg DREAD Score
+    </span>
+    <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+      <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em;">
+        {{ project.average_risk|floatformat:1 }}
+      </span>
+    </div>
+  </div>
+  
+  <!-- StatCard: Critical -->
+  <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+    <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+      Critical
+    </span>
+    <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+      <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: {% if project.risk_breakdown.Critical > 0 %}var(--risk-critical){% else %}var(--text-primary){% endif %}; letter-spacing: -0.01em;">
+        {{ project.risk_breakdown.Critical|default:0 }}
+      </span>
+    </div>
+  </div>
+  
+  <!-- StatCard: High -->
+  <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+    <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+      High
+    </span>
+    <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+      <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: {% if project.risk_breakdown.High > 0 %}var(--risk-high){% else %}var(--text-primary){% endif %}; letter-spacing: -0.01em;">
+        {{ project.risk_breakdown.High|default:0 }}
+      </span>
+    </div>
+  </div>
 </div>
 
-<form method="get" class="filters">
-  <input type="text" name="q" placeholder="Search threats..." value="{{ search }}">
-  <select name="status">
-    <option value="">All statuses</option>
-    <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
-    <option value="mitigated" {% if status_filter == 'mitigated' %}selected{% endif %}>Mitigated</option>
-    <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Risk Accepted</option>
-    <option value="false_positive" {% if status_filter == 'false_positive' %}selected{% endif %}>False Positive</option>
-  </select>
-  <select name="risk">
-    <option value="">All risk levels</option>
-    <option value="Critical" {% if risk_filter == 'Critical' %}selected{% endif %}>Critical</option>
-    <option value="High" {% if risk_filter == 'High' %}selected{% endif %}>High</option>
-    <option value="Medium" {% if risk_filter == 'Medium' %}selected{% endif %}>Medium</option>
-    <option value="Low" {% if risk_filter == 'Low' %}selected{% endif %}>Low</option>
-  </select>
-  <button type="submit" class="btn">Filter</button>
-</form>
+<div class="glass-card" style="padding: 16px 24px; margin-bottom: 24px;">
+  <form method="get" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+    <input type="text" name="q" placeholder="Search threats..." value="{{ search }}" class="input-base" style="width: auto; min-width: 200px;">
+    <select name="status" class="input-base" style="width: auto; min-width: 150px;">
+      <option value="">All statuses</option>
+      <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+      <option value="mitigated" {% if status_filter == 'mitigated' %}selected{% endif %}>Mitigated</option>
+      <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Risk Accepted</option>
+      <option value="false_positive" {% if status_filter == 'false_positive' %}selected{% endif %}>False Positive</option>
+    </select>
+    <select name="risk" class="input-base" style="width: auto; min-width: 150px;">
+      <option value="">All risk levels</option>
+      <option value="Critical" {% if risk_filter == 'Critical' %}selected{% endif %}>Critical</option>
+      <option value="High" {% if risk_filter == 'High' %}selected{% endif %}>High</option>
+      <option value="Medium" {% if risk_filter == 'Medium' %}selected{% endif %}>Medium</option>
+      <option value="Low" {% if risk_filter == 'Low' %}selected{% endif %}>Low</option>
+    </select>
+    <button type="submit" class="btn btn-secondary btn-md">Filter</button>
+  </form>
+</div>
 
 {% if threats %}
-<div class="table-container">
-  <table>
-    <thead>
-      <tr><th>Threat</th><th>STRIDE</th><th>Score</th><th>Risk</th><th>Status</th><th></th></tr>
-    </thead>
-    <tbody>
-    {% for t in threats %}
-      <tr>
-        <td><a href="{% url 'threat_detail' t.pk %}"><strong>{{ t.title }}</strong></a></td>
-        <td>{{ t.get_stride_category_display }}</td>
-        <td>{{ t.dread_score }}</td>
-        <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
-        <td><span class="badge badge-status">{{ t.get_status_display }}</span></td>
-        <td><a href="{% url 'threat_detail' t.pk %}" class="btn btn-sm">View</a></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+<div class="glass-card" style="overflow: hidden;">
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Threat</th>
+          <th>STRIDE</th>
+          <th style="text-align: right;">Score</th>
+          <th>Risk</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in threats %}
+        <tr class="tr-hover" style="border-top: 1px solid var(--border-hairline);">
+          <td style="padding: 12px 24px;">
+            <a href="{% url 'threat_detail' t.pk %}" style="font-family: var(--font-body); font-size: 13px; font-weight: 500; display: block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{ t.title }}
+            </a>
+          </td>
+          <td style="padding: 12px 16px;">
+            <span class="stride-tag">
+              <span style="font-weight: 700; color: var(--accent-primary);">{{ t.get_stride_category_display|slice:":1" }}</span>
+              {{ t.get_stride_category_display }}
+            </span>
+          </td>
+          <td style="padding: 12px 16px; text-align: right;">
+            <span class="font-mono" style="font-size: 14px; font-weight: 600; color: var(--risk-{{ t.risk_level|lower }});">
+              {{ t.dread_score|floatformat:1 }}
+            </span>
+          </td>
+          <td style="padding: 12px 16px;">
+            <span class="risk-pill compact {{ t.risk_level|lower }}">
+              {% if t.risk_level == 'Critical' %}<span style="font-size:7px;">◆</span>
+              {% elif t.risk_level == 'High' %}<span style="font-size:7px;">▲</span>
+              {% elif t.risk_level == 'Medium' %}<span style="font-size:7px;">■</span>
+              {% elif t.risk_level == 'Low' %}<span style="font-size:7px;">●</span>{% endif %}
+              {{ t.risk_level }}
+            </span>
+          </td>
+          <td style="padding: 12px 16px;">
+            <span class="status-chip {{ t.status|lower|cut:' ' }}">{{ t.get_status_display }}</span>
+          </td>
+          <td style="padding: 12px 24px 12px 16px; text-align: right;">
+            <a href="{% url 'threat_detail' t.pk %}" class="btn btn-ghost btn-sm">View &rarr;</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% else %}
-<div class="empty-state">
-  <p>No threats found. Add one to start your DREAD analysis.</p>
-  <a href="{% url 'threat_create' project.pk %}" class="btn btn-primary">+ Add Threat</a>
+<div class="empty-state glass-card">
+  <div>
+    <h3 class="font-display" style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text-primary);">No threats found</h3>
+    <p style="margin: 6px 0 0; font-size: 14px; color: var(--text-muted); max-width: 340px; line-height: 22px;">
+      {% if search or status_filter or risk_filter %}
+      No threats match your current filters.
+      {% else %}
+      Add your first threat to start your DREAD analysis for this project.
+      {% endif %}
+    </p>
+  </div>
+  {% if not search and not status_filter and not risk_filter %}
+  <a href="{% url 'threat_create' project.pk %}" class="btn btn-primary btn-lg" style="box-shadow: 0 0 20px var(--accent-glow);">
+    + Add Threat
+  </a>
+  {% endif %}
 </div>
 {% endif %}
 {% endblock %}

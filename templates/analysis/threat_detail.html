@@ -1,54 +1,141 @@
 {% extends 'analysis/base.html' %}
 {% block title %}{{ threat.title }}{% endblock %}
 {% block content %}
-<div class="page-header">
+<div class="flex items-center justify-between flex-wrap gap-4 mb-8">
   <div>
-    <h1>{{ threat.title }}</h1>
-    <p class="subtitle">Project: <a href="{% url 'project_detail' threat.project.pk %}">{{ threat.project.name }}</a> &middot; {{ threat.get_stride_category_display }}</p>
+    <a href="{% url 'project_detail' threat.project.pk %}" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; display: inline-block;">&larr; Back to {{ threat.project.name }}</a>
+    <h1 class="font-display" style="font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em;">
+      {{ threat.title }}
+    </h1>
+    <div style="margin: 6px 0 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <span class="stride-tag">
+        <span style="font-weight: 700; color: var(--accent-primary);">{{ threat.get_stride_category_display|slice:":1" }}</span>
+        {{ threat.get_stride_category_display }}
+      </span>
+      <span class="status-chip {{ threat.status|lower|cut:' ' }}">{{ threat.get_status_display }}</span>
+      <span style="font-size: 13px; color: var(--text-muted);">
+        Created {{ threat.created_at|date:"M d, Y" }}
+      </span>
+    </div>
   </div>
-  <div>
-    <a href="{% url 'threat_edit' threat.pk %}" class="btn">Edit</a>
-    <a href="{% url 'threat_delete' threat.pk %}" class="btn btn-danger">Delete</a>
+  <div style="display: flex; gap: 8px;">
+    <a href="{% url 'threat_edit' threat.pk %}" class="btn btn-secondary btn-md">Edit</a>
+    <a href="{% url 'threat_delete' threat.pk %}" class="btn btn-danger btn-md">Delete</a>
   </div>
 </div>
 
-<div class="card" style="display:flex; align-items:center; gap:28px; flex-wrap:wrap;">
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px;">
   <div>
-    <div class="score-display" style="color:{{ threat.risk_color }};">{{ threat.dread_score }}</div>
-    <div class="help-text">DREAD Score / 10</div>
+    {% if threat.description %}
+    <div class="glass-card" style="padding: 24px;">
+      <h2 class="font-display" style="margin: 0 0 16px; font-size: 16px; color: var(--text-primary);">Description</h2>
+      <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+        {{ threat.description|linebreaks }}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if threat.mitigation %}
+    <div class="glass-card" style="padding: 24px;">
+      <h2 class="font-display" style="margin: 0 0 16px; font-size: 16px; color: var(--text-primary);">Mitigation Plan</h2>
+      <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+        {{ threat.mitigation|linebreaks }}
+      </div>
+    </div>
+    {% else %}
+    <div class="glass-card" style="padding: 24px; border: 1px dashed rgba(255,255,255,0.15);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 class="font-display" style="margin: 0 0 4px; font-size: 16px; color: var(--text-primary);">No Mitigation Plan</h2>
+          <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Add a plan to address this risk.</p>
+        </div>
+        <a href="{% url 'threat_edit' threat.pk %}" class="btn btn-secondary btn-sm">Edit Threat</a>
+      </div>
+    </div>
+    {% endif %}
   </div>
+
   <div>
-    <span class="badge badge-{{ threat.risk_level|lower }}" style="font-size:1rem; padding:6px 16px;">{{ threat.risk_level }} Risk</span>
+    <!-- Score Card -->
+    <div class="glass-card" style="padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;">
+      <span class="font-display" style="font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);">
+        DREAD Score
+      </span>
+      <div class="font-mono" style="font-size: 56px; font-weight: 700; line-height: 1; color: var(--risk-{{ threat.risk_level|lower }}); filter: drop-shadow(0 0 12px var(--risk-{{ threat.risk_level|lower }})) opacity(0.8);">
+        {{ threat.dread_score|floatformat:1 }}
+      </div>
+      <span class="risk-pill {{ threat.risk_level|lower }}">
+        {% if threat.risk_level == 'Critical' %}<span style="font-size:8px;">◆</span>
+        {% elif threat.risk_level == 'High' %}<span style="font-size:8px;">▲</span>
+        {% elif threat.risk_level == 'Medium' %}<span style="font-size:8px;">■</span>
+        {% elif threat.risk_level == 'Low' %}<span style="font-size:8px;">●</span>{% endif %}
+        {{ threat.risk_level }} Risk
+      </span>
+    </div>
+
+    <!-- Rating Breakdown -->
+    <div class="glass-card" style="padding: 24px;">
+      <h2 class="font-display" style="margin: 0 0 20px; font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted);">
+        Rating Breakdown
+      </h2>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <!-- Factor: Damage -->
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Damage</span>
+            <span class="font-mono" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">{{ threat.damage }}/10</span>
+          </div>
+          <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; background: var(--accent-primary); width: {% widthratio threat.damage 10 100 %}%; border-radius: 3px;"></div>
+          </div>
+        </div>
+
+        <!-- Factor: Reproducibility -->
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Reproducibility</span>
+            <span class="font-mono" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">{{ threat.reproducibility }}/10</span>
+          </div>
+          <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; background: var(--accent-primary); width: {% widthratio threat.reproducibility 10 100 %}%; border-radius: 3px;"></div>
+          </div>
+        </div>
+
+        <!-- Factor: Exploitability -->
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Exploitability</span>
+            <span class="font-mono" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">{{ threat.exploitability }}/10</span>
+          </div>
+          <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; background: var(--accent-primary); width: {% widthratio threat.exploitability 10 100 %}%; border-radius: 3px;"></div>
+          </div>
+        </div>
+
+        <!-- Factor: Affected Users -->
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Affected Users</span>
+            <span class="font-mono" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">{{ threat.affected_users }}/10</span>
+          </div>
+          <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; background: var(--accent-primary); width: {% widthratio threat.affected_users 10 100 %}%; border-radius: 3px;"></div>
+          </div>
+        </div>
+
+        <!-- Factor: Discoverability -->
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Discoverability</span>
+            <span class="font-mono" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">{{ threat.discoverability }}/10</span>
+          </div>
+          <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; background: var(--accent-primary); width: {% widthratio threat.discoverability 10 100 %}%; border-radius: 3px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div>
-    <span class="badge badge-status">{{ threat.get_status_display }}</span>
-  </div>
 </div>
-
-<div class="card">
-  <strong>Rating Breakdown</strong>
-  <div style="margin-top:10px;">
-    <div class="dread-breakdown-row"><span>Damage</span><strong>{{ threat.damage }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Reproducibility</span><strong>{{ threat.reproducibility }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Exploitability</span><strong>{{ threat.exploitability }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Affected Users</span><strong>{{ threat.affected_users }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Discoverability</span><strong>{{ threat.discoverability }}/10</strong></div>
-  </div>
-</div>
-
-{% if threat.description %}
-<div class="card">
-  <strong>Description</strong>
-  <p style="margin-bottom:0; margin-top:8px; color:var(--text-muted);">{{ threat.description|linebreaks }}</p>
-</div>
-{% endif %}
-
-{% if threat.mitigation %}
-<div class="card">
-  <strong>Mitigation Plan</strong>
-  <p style="margin-bottom:0; margin-top:8px; color:var(--text-muted);">{{ threat.mitigation|linebreaks }}</p>
-</div>
-{% endif %}
-
-<p class="help-text">Created by {{ threat.created_by }} on {{ threat.created_at|date:"M d, Y" }} &middot; Last updated {{ threat.updated_at|date:"M d, Y" }}</p>
 {% endblock %}

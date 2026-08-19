@@ -1,83 +1,218 @@
 {% extends 'analysis/base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="page-header">
+<div class="flex items-center justify-between flex-wrap gap-4 mb-8">
   <div>
-    <h1>Dashboard</h1>
-    <p class="subtitle">Overview of all your threat models</p>
+    <h1 class="font-display" style="font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em;">
+      Welcome back.
+    </h1>
+    <p style="margin: 4px 0 0; font-size: 14px; color: var(--text-muted);">
+      {{ projects.count }} project{{ projects.count|pluralize }} &middot; {{ total_threats }} threat{{ total_threats|pluralize }} tracked
+    </p>
   </div>
-  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
+  <a href="{% url 'project_create' %}" class="btn btn-primary btn-md" style="box-shadow: 0 0 20px var(--accent-glow);">
+    + New project
+  </a>
 </div>
 
-<div class="stat-grid">
-  <div class="stat-card"><div class="num">{{ projects.count }}</div><div class="label">Projects</div></div>
-  <div class="stat-card"><div class="num">{{ total_threats }}</div><div class="label">Total Threats</div></div>
-  <div class="stat-card critical"><div class="num">{{ critical_count }}</div><div class="label">Critical Risks</div></div>
-  <div class="stat-card high"><div class="num">{{ high_count }}</div><div class="label">High Risks</div></div>
-  <div class="stat-card"><div class="num">{{ open_count }}</div><div class="label">Open Threats</div></div>
-</div>
-
-{% if total_threats > 0 %}
-<div class="card">
-  <strong>Risk Distribution</strong>
-  <div class="risk-bar">
-    {% if overall_breakdown.Critical %}<div style="background:var(--critical-color); width:{% widthratio overall_breakdown.Critical total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.High %}<div style="background:var(--high-color); width:{% widthratio overall_breakdown.High total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.Medium %}<div style="background:var(--medium-color); width:{% widthratio overall_breakdown.Medium total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.Low %}<div style="background:var(--low-color); width:{% widthratio overall_breakdown.Low total_threats 100 %}%"></div>{% endif %}
-  </div>
-  <div style="display:flex; gap:16px; margin-top:10px; font-size:0.85rem; color:var(--text-dim);">
-    <span>&#9679; Critical: {{ overall_breakdown.Critical }}</span>
-    <span>&#9679; High: {{ overall_breakdown.High }}</span>
-    <span>&#9679; Medium: {{ overall_breakdown.Medium }}</span>
-    <span>&#9679; Low: {{ overall_breakdown.Low }}</span>
-  </div>
-</div>
-{% endif %}
-
-{% if top_threats %}
-<div class="card">
-  <strong>Top 5 Highest-Risk Threats</strong>
-  <div class="table-container" style="margin-top:16px;">
-    <table>
-      <thead><tr><th>Threat</th><th>Project</th><th>Score</th><th>Level</th></tr></thead>
-      <tbody>
-      {% for t in top_threats %}
-        <tr>
-          <td><a href="{% url 'threat_detail' t.pk %}"><strong>{{ t.title }}</strong></a></td>
-          <td>{{ t.project.name }}</td>
-          <td>{{ t.dread_score }}</td>
-          <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% endif %}
-
-<h2 style="font-size:1.2rem; margin-top:32px;">Your Projects</h2>
 {% if projects %}
-<div class="table-container">
-  <table>
-    <thead><tr><th>Name</th><th>Threats</th><th>Avg Risk</th><th>Updated</th><th></th></tr></thead>
-    <tbody>
-    {% for p in projects %}
-      <tr>
-        <td><a href="{% url 'project_detail' p.pk %}"><strong>{{ p.name }}</strong></a></td>
-        <td>{{ p.threat_count }}</td>
-        <td>{{ p.average_risk }}</td>
-        <td>{{ p.updated_at|date:"M d, Y" }}</td>
-        <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <div class="stat-grid">
+    <!-- StatCard: Total Projects -->
+    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+        Total Projects
+      </span>
+      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em;">
+          {{ projects.count }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- StatCard: Total Threats -->
+    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+        Total Threats
+      </span>
+      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em;">
+          {{ total_threats }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- StatCard: Critical Risks -->
+    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+        Critical Risks
+      </span>
+      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: {% if critical_count > 0 %}var(--risk-critical){% else %}var(--text-primary){% endif %}; letter-spacing: -0.01em;">
+          {{ critical_count }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- StatCard: High Risks -->
+    <div class="glass-card" style="padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 0;">
+      <span style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">
+        High Risks
+      </span>
+      <div style="display: flex; alignItems: flex-end; gap: 10px; justify-content: space-between;">
+        <span class="font-mono" style="font-size: 44px; font-weight: 600; line-height: 1; color: {% if high_count > 0 %}var(--risk-high){% else %}var(--text-primary){% endif %}; letter-spacing: -0.01em;">
+          {{ high_count }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {% if total_threats > 0 %}
+  <!-- Risk Distribution -->
+  <div class="glass-card" style="padding: 24px; margin-bottom: 32px;">
+    <div style="margin-bottom: 16px;">
+      <h2 class="font-display" style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);">
+        Risk Distribution
+      </h2>
+    </div>
+    <div>
+      <div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 1px;" role="img">
+        {% if overall_breakdown.Critical %}<div style="flex: 0 0 {% widthratio overall_breakdown.Critical total_threats 100 %}%; background: var(--risk-critical); min-width: 4px;"></div>{% endif %}
+        {% if overall_breakdown.High %}<div style="flex: 0 0 {% widthratio overall_breakdown.High total_threats 100 %}%; background: var(--risk-high); min-width: 4px;"></div>{% endif %}
+        {% if overall_breakdown.Medium %}<div style="flex: 0 0 {% widthratio overall_breakdown.Medium total_threats 100 %}%; background: var(--risk-medium); min-width: 4px;"></div>{% endif %}
+        {% if overall_breakdown.Low %}<div style="flex: 0 0 {% widthratio overall_breakdown.Low total_threats 100 %}%; background: var(--risk-low); min-width: 4px;"></div>{% endif %}
+      </div>
+      <div style="display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-critical);"></div>
+          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.Critical|default:0 }} Critical</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-high);"></div>
+          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.High|default:0 }} High</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-medium);"></div>
+          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.Medium|default:0 }} Medium</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; border-radius: 2px; background: var(--risk-low);"></div>
+          <span class="font-mono" style="font-size: 11px; color: var(--text-muted);">{{ overall_breakdown.Low|default:0 }} Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if top_threats %}
+  <!-- Top Threats -->
+  <div class="glass-card" style="overflow: hidden;">
+    <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-hairline); display: flex; align-items: center; justify-content: space-between;">
+      <h2 class="font-display" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);">
+        Top 5 Highest-Risk Threats
+      </h2>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Threat</th>
+            <th>Project</th>
+            <th style="text-align: right;">Score</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in top_threats %}
+          <tr class="tr-hover" style="border-top: 1px solid var(--border-hairline);">
+            <td style="padding: 12px 24px;">
+              <a href="{% url 'threat_detail' t.pk %}" style="font-family: var(--font-body); font-size: 13px; font-weight: 500; display: block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ t.title }}
+              </a>
+            </td>
+            <td style="padding: 12px 16px;">
+              <span style="font-family: var(--font-body); font-size: 12px; color: var(--text-muted);">
+                {{ t.project.name }}
+              </span>
+            </td>
+            <td style="padding: 12px 16px; text-align: right;">
+              <span class="font-mono" style="font-size: 14px; font-weight: 600; color: var(--risk-{{ t.risk_level|lower }});">
+                {{ t.dread_score|floatformat:1 }}
+              </span>
+            </td>
+            <td style="padding: 12px 16px;">
+              <span class="risk-pill compact {{ t.risk_level|lower }}">
+                {% if t.risk_level == 'Critical' %}<span style="font-size:7px;">◆</span>
+                {% elif t.risk_level == 'High' %}<span style="font-size:7px;">▲</span>
+                {% elif t.risk_level == 'Medium' %}<span style="font-size:7px;">■</span>
+                {% elif t.risk_level == 'Low' %}<span style="font-size:7px;">●</span>{% endif %}
+                {{ t.risk_level }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Projects -->
+  <div class="glass-card" style="overflow: hidden;">
+    <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-hairline); display: flex; align-items: center; justify-content: space-between;">
+      <h2 class="font-display" style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);">
+        Your Projects
+      </h2>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Threats</th>
+            <th style="text-align: right;">Avg Risk</th>
+            <th>Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in projects %}
+          <tr class="tr-hover" style="border-top: 1px solid var(--border-hairline);">
+            <td style="padding: 12px 24px;">
+              <a href="{% url 'project_detail' p.pk %}" style="font-family: var(--font-body); font-size: 13px; font-weight: 500;">
+                {{ p.name }}
+              </a>
+            </td>
+            <td style="padding: 12px 16px;">
+              <span class="font-mono" style="font-size: 13px;">{{ p.threat_count }}</span>
+            </td>
+            <td style="padding: 12px 16px; text-align: right;">
+              <span class="font-mono" style="font-size: 13px;">{{ p.average_risk|floatformat:1 }}</span>
+            </td>
+            <td style="padding: 12px 16px;">
+              <span style="font-size: 12px; color: var(--text-muted);">{{ p.updated_at|date:"M d, Y" }}</span>
+            </td>
+            <td style="padding: 12px 16px; text-align: right;">
+              <a href="{% url 'project_detail' p.pk %}" class="btn btn-ghost btn-sm">View &rarr;</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 {% else %}
-<div class="empty-state">
-  <p>No projects yet. Create your first threat model to get started.</p>
-  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
-</div>
+  <div class="empty-state glass-card">
+    <div>
+      <h3 class="font-display" style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text-primary);">No projects yet</h3>
+      <p style="margin: 6px 0 0; font-size: 14px; color: var(--text-muted); max-width: 340px; line-height: 22px;">
+        Create your first project to start cataloguing threats and calculating DREAD scores.
+      </p>
+    </div>
+    <a href="{% url 'project_create' %}" class="btn btn-primary btn-lg" style="box-shadow: 0 0 20px var(--accent-glow);">
+      + Create first project
+    </a>
+  </div>
 {% endif %}
+
 {% endblock %}

@@ -1,31 +1,70 @@
 {% extends 'analysis/base.html' %}
 {% block title %}Projects{% endblock %}
 {% block content %}
-<div class="page-header">
-  <h1>Projects</h1>
-  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
+<div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+  <div>
+    <h1 class="font-display" style="font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em;">
+      Projects
+    </h1>
+    <p style="margin: 4px 0 0; font-size: 14px; color: var(--text-muted);">
+      All threat modeling projects
+    </p>
+  </div>
+  <a href="{% url 'project_create' %}" class="btn btn-primary btn-md" style="box-shadow: 0 0 20px var(--accent-glow);">
+    + New Project
+  </a>
 </div>
+
 {% if projects %}
-<div class="table-container">
-  <table>
-    <thead><tr><th>Name</th><th>Description</th><th>Threats</th><th>Avg Risk</th><th></th></tr></thead>
-    <tbody>
-    {% for p in projects %}
-      <tr>
-        <td><a href="{% url 'project_detail' p.pk %}"><strong>{{ p.name }}</strong></a></td>
-        <td>{{ p.description|truncatechars:60 }}</td>
-        <td>{{ p.threat_count }}</td>
-        <td>{{ p.average_risk }}</td>
-        <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+<div class="glass-card" style="overflow: hidden;">
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th style="text-align: right;">Threats</th>
+          <th style="text-align: right;">Avg Risk</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in projects %}
+        <tr class="tr-hover" style="border-top: 1px solid var(--border-hairline);">
+          <td style="padding: 12px 24px;">
+            <a href="{% url 'project_detail' p.pk %}" style="font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              {{ p.name }}
+            </a>
+          </td>
+          <td style="padding: 12px 16px;">
+            <span style="font-size: 13px; color: var(--text-muted);">{{ p.description|truncatechars:60 }}</span>
+          </td>
+          <td style="padding: 12px 16px; text-align: right;">
+            <span class="font-mono" style="font-size: 14px; font-weight: 600;">{{ p.threat_count }}</span>
+          </td>
+          <td style="padding: 12px 16px; text-align: right;">
+            <span class="font-mono" style="font-size: 14px; font-weight: 600; color: var(--risk-{{ p.average_risk_level|default:'low'|lower }});">{{ p.average_risk|floatformat:1 }}</span>
+          </td>
+          <td style="padding: 12px 24px 12px 16px; text-align: right;">
+            <a href="{% url 'project_detail' p.pk %}" class="btn btn-ghost btn-sm">View &rarr;</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% else %}
-<div class="empty-state">
-  <p>No projects yet.</p>
-  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
+<div class="empty-state glass-card">
+  <div>
+    <h3 class="font-display" style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text-primary);">No projects yet</h3>
+    <p style="margin: 6px 0 0; font-size: 14px; color: var(--text-muted); max-width: 340px; line-height: 22px;">
+      Create your first project to start cataloguing threats.
+    </p>
+  </div>
+  <a href="{% url 'project_create' %}" class="btn btn-primary btn-lg" style="box-shadow: 0 0 20px var(--accent-glow);">
+    + Create first project
+  </a>
 </div>
 {% endif %}
 {% endblock %}

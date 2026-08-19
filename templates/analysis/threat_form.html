@@ -1,66 +1,87 @@
 {% extends 'analysis/base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<div class="page-header">
-  <h1>{{ title }}</h1>
-  <p class="subtitle">Project: {{ project.name }}</p>
+<div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+  <div>
+    {% if threat %}
+      <a href="{% url 'threat_detail' threat.pk %}" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; display: inline-block;">&larr; Back to Threat</a>
+    {% else %}
+      <a href="{% url 'project_detail' project.pk %}" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; display: inline-block;">&larr; Back to Project</a>
+    {% endif %}
+    <h1 class="font-display" style="font-size: 28px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em;">
+      {{ title }}
+    </h1>
+    <p style="margin: 4px 0 0; font-size: 14px; color: var(--text-muted);">
+      Project: {{ project.name }}
+    </p>
+  </div>
 </div>
-<div class="card">
+
+<div class="glass-card" style="padding: 32px 32px 40px; max-width: 800px;">
   <form method="post">
     {% csrf_token %}
     <div class="form-group">
       <label>{{ form.title.label }}</label>
-      {{ form.title }}{{ form.title.errors }}
+      {{ form.title }}
+      {% if form.title.errors %}<div style="color: var(--risk-critical); font-size: 12px; margin-top: 4px;">{{ form.title.errors }}</div>{% endif %}
     </div>
     <div class="form-group">
       <label>{{ form.description.label }}</label>
-      {{ form.description }}{{ form.description.errors }}
+      {{ form.description }}
+      {% if form.description.errors %}<div style="color: var(--risk-critical); font-size: 12px; margin-top: 4px;">{{ form.description.errors }}</div>{% endif %}
     </div>
     <div class="form-group">
       <label>{{ form.stride_category.label }}</label>
-      {{ form.stride_category }}{{ form.stride_category.errors }}
+      {{ form.stride_category }}
+      {% if form.stride_category.errors %}<div style="color: var(--risk-critical); font-size: 12px; margin-top: 4px;">{{ form.stride_category.errors }}</div>{% endif %}
     </div>
 
-    <h3 style="margin-top:24px; font-size:1rem; color:var(--text-dim);">DREAD Ratings (1 = low, 10 = high)</h3>
-    <div class="dread-grid">
-      <div class="form-group">
+    <h3 class="font-display" style="margin-top: 32px; margin-bottom: 16px; font-size: 18px; color: var(--text-primary);">
+      DREAD Ratings <span style="font-family: var(--font-body); font-weight: 500; font-size: 13px; color: var(--text-muted);">(1 = low, 10 = high)</span>
+    </h3>
+    
+    <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px;">
+      <div class="form-group" style="margin-bottom: 0;">
         <label>Damage</label>
         {{ form.damage }}
-        <div class="help-text">{{ form.damage.help_text }}</div>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 0;">
         <label>Reproducibility</label>
         {{ form.reproducibility }}
-        <div class="help-text">{{ form.reproducibility.help_text }}</div>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 0;">
         <label>Exploitability</label>
         {{ form.exploitability }}
-        <div class="help-text">{{ form.exploitability.help_text }}</div>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 0;">
         <label>Affected Users</label>
         {{ form.affected_users }}
-        <div class="help-text">{{ form.affected_users.help_text }}</div>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 0;">
         <label>Discoverability</label>
         {{ form.discoverability }}
-        <div class="help-text">{{ form.discoverability.help_text }}</div>
       </div>
     </div>
 
-    <div class="form-group" style="margin-top:20px;">
+    <div class="form-group" style="margin-top: 32px;">
       <label>{{ form.mitigation.label }}</label>
-      {{ form.mitigation }}{{ form.mitigation.errors }}
+      {{ form.mitigation }}
+      {% if form.mitigation.errors %}<div style="color: var(--risk-critical); font-size: 12px; margin-top: 4px;">{{ form.mitigation.errors }}</div>{% endif %}
     </div>
     <div class="form-group">
       <label>{{ form.status.label }}</label>
-      {{ form.status }}{{ form.status.errors }}
+      {{ form.status }}
+      {% if form.status.errors %}<div style="color: var(--risk-critical); font-size: 12px; margin-top: 4px;">{{ form.status.errors }}</div>{% endif %}
     </div>
 
-    <button type="submit" class="btn btn-primary">Save Threat</button>
-    <a href="{% url 'project_detail' project.pk %}" class="btn">Cancel</a>
+    <div style="margin-top: 32px; display: flex; gap: 12px;">
+      <button type="submit" class="btn btn-primary btn-lg" style="box-shadow: 0 0 20px var(--accent-glow);">Save Threat</button>
+      {% if threat %}
+        <a href="{% url 'threat_detail' threat.pk %}" class="btn btn-secondary btn-lg">Cancel</a>
+      {% else %}
+        <a href="{% url 'project_detail' project.pk %}" class="btn btn-secondary btn-lg">Cancel</a>
+      {% endif %}
+    </div>
   </form>
 </div>
 {% endblock %}
