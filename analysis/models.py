@@ -3,6 +3,14 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+
+
 class Project(models.Model):
     """A system/application being threat-modeled."""
     name = models.CharField(max_length=200)
@@ -38,6 +46,21 @@ class Project(models.Model):
         for t in self.threats.all():
             breakdown[t.risk_level] += 1
         return breakdown
+
+    @property
+    def max_score(self):
+        threats = self.threats.all()
+        if not threats:
+            return 0
+        return max(t.dread_score for t in threats)
+
+    @property
+    def max_risk_level(self):
+        threats = self.threats.all()
+        if not threats:
+            return None
+        max_threat = max(threats, key=lambda t: t.dread_score)
+        return max_threat.risk_level
 
 
 class Threat(models.Model):

@@ -1,0 +1,37 @@
+{% if messages %}
+<div style="position: fixed; top: {% if not user.is_authenticated %}16px{% else %}68px{% endif %}; right: 16px; z-index: 60; display: flex; flex-direction: column; gap: 8px;" role="alert" aria-live="polite">
+  {% for message in messages %}
+    
+    <div class="flash-msg" style="padding: 11px 14px; border-radius: 10px; min-width: 280px; max-width: 420px; box-shadow: var(--shadow-e2); backdrop-filter: blur(16px); display: flex; gap: 10px; align-items: flex-start;
+      {% if message.tags == 'success' %}background: rgba(34,211,165,0.1); border: 1px solid rgba(34,211,165,0.3);{% endif %}
+      {% if message.tags == 'error' %}background: rgba(255,61,113,0.1); border: 1px solid rgba(255,61,113,0.3);{% endif %}
+      {% if message.tags == 'warning' %}background: rgba(255,197,61,0.1); border: 1px solid rgba(255,197,61,0.3);{% endif %}
+      {% if message.tags == 'info' or message.tags == 'debug' %}background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);{% endif %}
+    ">
+      <span class="font-mono" style="font-size: 14px; margin-top: 2px;
+        {% if message.tags == 'success' %}color: #22D3A5;{% endif %}
+        {% if message.tags == 'error' %}color: #FF3D71;{% endif %}
+        {% if message.tags == 'warning' %}color: #FFC53D;{% endif %}
+        {% if message.tags == 'info' or message.tags == 'debug' %}color: #60A5FA;{% endif %}
+      " aria-hidden="true">
+        {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}
+      </span>
+      <div style="flex: 1; font-family: var(--font-body); font-size: 13px; line-height: 1.5; color: var(--text-primary);">
+        {{ message }}
+      </div>
+      <button type="button" class="focus-ring" style="background: transparent; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 0; margin-top: 1px;" aria-label="Dismiss message" onclick="this.parentElement.remove();">
+        ✕
+      </button>
+    </div>
+  {% endfor %}
+</div>
+<script>
+setTimeout(function() {
+  document.querySelectorAll('.flash-msg').forEach(function(el) {
+    el.style.transition = 'opacity 300ms';
+    el.style.opacity = '0';
+    setTimeout(function() { el.remove(); }, 300);
+  });
+}, 5000);
+</script>
+{% endif %}

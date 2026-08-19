@@ -1,66 +1,263 @@
-{% extends 'analysis/base.html' %}
-{% block title %}{{ title }}{% endblock %}
+{% extends "analysis/base.html" %}
+{% load threatscope %}
+
+{% block title %}{% if form.instance.pk %}Edit Threat{% else %}Add Threat{% endif %} | ThreatScope{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <h1>{{ title }}</h1>
-  <p class="subtitle">Project: {{ project.name }}</p>
-</div>
-<div class="card">
-  <form method="post">
+<div class="page-container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 24px;">
+    <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 6px;">
+      <li><a href="{% url 'project_list' %}" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">Projects</a></li>
+      <li style="font-size: 12px; color: var(--text-disabled);" aria-hidden="true">/</li>
+      <li><a href="{% url 'project_detail' pk=project.pk %}" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">{{ project.name }}</a></li>
+      <li style="font-size: 12px; color: var(--text-disabled);" aria-hidden="true">/</li>
+      <li><a href="#" aria-current="page" style="font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none;">{% if form.instance.pk %}Edit threat{% else %}Add threat{% endif %}</a></li>
+    </ol>
+  </nav>
+
+  <header class="mb-6">
+    <h1 class="font-display" style="font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em;">{% if form.instance.pk %}Edit threat{% else %}Add threat{% endif %}</h1>
+    <p style="margin-top: 4px; font-size: 14px; line-height: 22px; color: var(--text-muted);">
+      {% if form.instance.pk %}Update a threat against {{ project.name }}.{% else %}Catalogue a threat against {{ project.name }}.{% endif %}
+    </p>
+  </header>
+
+  <form method="post" class="threat-form-grid" style="display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start;">
     {% csrf_token %}
-    <div class="form-group">
-      <label>{{ form.title.label }}</label>
-      {{ form.title }}{{ form.title.errors }}
-    </div>
-    <div class="form-group">
-      <label>{{ form.description.label }}</label>
-      {{ form.description }}{{ form.description.errors }}
-    </div>
-    <div class="form-group">
-      <label>{{ form.stride_category.label }}</label>
-      {{ form.stride_category }}{{ form.stride_category.errors }}
-    </div>
+    
+    <div class="flex-col gap-5">
+      {% if form.errors %}
+      <div class="form-errors" role="alert">
+        <p class="form-errors__title">Fix the following errors to continue:</p>
+        <ul>
+          {% for field in form %}{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}{% endfor %}
+          {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
 
-    <h3 style="margin-top:24px; font-size:1rem; color:var(--text-dim);">DREAD Ratings (1 = low, 10 = high)</h3>
-    <div class="dread-grid">
-      <div class="form-group">
-        <label>Damage</label>
-        {{ form.damage }}
-        <div class="help-text">{{ form.damage.help_text }}</div>
-      </div>
-      <div class="form-group">
-        <label>Reproducibility</label>
-        {{ form.reproducibility }}
-        <div class="help-text">{{ form.reproducibility.help_text }}</div>
-      </div>
-      <div class="form-group">
-        <label>Exploitability</label>
-        {{ form.exploitability }}
-        <div class="help-text">{{ form.exploitability.help_text }}</div>
-      </div>
-      <div class="form-group">
-        <label>Affected Users</label>
-        {{ form.affected_users }}
-        <div class="help-text">{{ form.affected_users.help_text }}</div>
-      </div>
-      <div class="form-group">
-        <label>Discoverability</label>
-        {{ form.discoverability }}
-        <div class="help-text">{{ form.discoverability.help_text }}</div>
-      </div>
-    </div>
+      <div class="glass-card" style="padding: 24px;">
+        <h2 class="eyebrow" style="margin-bottom: 18px;">Threat details</h2>
+        <div class="flex-col gap-4">
+          <div class="field {% if form.title.errors %}has-error{% endif %}">
+            <label class="field__label" for="{{ form.title.id_for_label }}">
+              {{ form.title.label }}
+              {% if form.title.field.required %}<span class="field__required" aria-hidden="true">*</span>{% endif %}
+            </label>
+            {{ form.title }}
+            {% for error in form.title.errors %}<span class="field__error" role="alert"><span aria-hidden="true">⚠</span> {{ error }}</span>{% endfor %}
+            {% if form.title.help_text and not form.title.errors %}<span class="field__hint">{{ form.title.help_text }}</span>{% endif %}
+          </div>
+          
+          <div class="field {% if form.description.errors %}has-error{% endif %}">
+            <label class="field__label" for="{{ form.description.id_for_label }}">
+              {{ form.description.label }}
+              {% if form.description.field.required %}<span class="field__required" aria-hidden="true">*</span>{% endif %}
+            </label>
+            {{ form.description }}
+            {% for error in form.description.errors %}<span class="field__error" role="alert"><span aria-hidden="true">⚠</span> {{ error }}</span>{% endfor %}
+            {% if form.description.help_text and not form.description.errors %}<span class="field__hint">{{ form.description.help_text }}</span>{% endif %}
+          </div>
 
-    <div class="form-group" style="margin-top:20px;">
-      <label>{{ form.mitigation.label }}</label>
-      {{ form.mitigation }}{{ form.mitigation.errors }}
+          <div class="field {% if form.mitigation.errors %}has-error{% endif %}">
+            <label class="field__label" for="{{ form.mitigation.id_for_label }}">
+              {{ form.mitigation.label }}
+              {% if form.mitigation.field.required %}<span class="field__required" aria-hidden="true">*</span>{% endif %}
+            </label>
+            {{ form.mitigation }}
+            {% for error in form.mitigation.errors %}<span class="field__error" role="alert"><span aria-hidden="true">⚠</span> {{ error }}</span>{% endfor %}
+            {% if form.mitigation.help_text and not form.mitigation.errors %}<span class="field__hint">{{ form.mitigation.help_text }}</span>{% endif %}
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="field {% if form.stride_category.errors %}has-error{% endif %}">
+              <label class="field__label" for="{{ form.stride_category.id_for_label }}">
+                STRIDE category
+              </label>
+              {{ form.stride_category }}
+              {% for error in form.stride_category.errors %}<span class="field__error" role="alert"><span aria-hidden="true">⚠</span> {{ error }}</span>{% endfor %}
+            </div>
+            
+            <div class="field {% if form.status.errors %}has-error{% endif %}">
+              <label class="field__label" for="{{ form.status.id_for_label }}">
+                Status
+                <span class="field__required" aria-hidden="true">*</span>
+              </label>
+              {{ form.status }}
+              {% for error in form.status.errors %}<span class="field__error" role="alert"><span aria-hidden="true">⚠</span> {{ error }}</span>{% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass-card" style="padding: 24px;">
+        <h2 class="eyebrow" style="margin-bottom: 20px;">DREAD Ratings</h2>
+        <div class="flex-col gap-5">
+          {% include "analysis/_rating_field.html" with field=form.damage label="Damage" letter="D" hint1="Minimal impact, easily recovered" hint10="Full system compromise, data destroyed or exfiltrated" %}
+          <div style="height: 1px; background: var(--border-hairline);"></div>
+          {% include "analysis/_rating_field.html" with field=form.reproducibility label="Reproducibility" letter="R" hint1="Only under rare conditions" hint10="Trivially reproducible every time" %}
+          <div style="height: 1px; background: var(--border-hairline);"></div>
+          {% include "analysis/_rating_field.html" with field=form.exploitability label="Exploitability" letter="E" hint1="Requires specialized hardware or expertise" hint10="No skill needed, automated tooling available" %}
+          <div style="height: 1px; background: var(--border-hairline);"></div>
+          {% include "analysis/_rating_field.html" with field=form.affected_users label="Affected Users" letter="A" hint1="Single user or internal service" hint10="All users or the entire customer base" %}
+          <div style="height: 1px; background: var(--border-hairline);"></div>
+          {% include "analysis/_rating_field.html" with field=form.discoverability label="Discoverability" letter="D" hint1="Obscure or deeply buried code path" hint10="Publicly documented, exposed to the internet" %}
+        </div>
+      </div>
+      
+      <div class="flex" style="gap: 8px; justify-content: flex-end; margin-top: 4px;">
+        <a href="{% if form.instance.pk %}{% url 'threat_detail' pk=form.instance.pk %}{% else %}{% url 'project_detail' pk=project.pk %}{% endif %}" class="btn btn--secondary btn--md">Cancel</a>
+        <button type="submit" class="btn btn--primary btn--md">{% if form.instance.pk %}Save changes{% else %}Add threat{% endif %}</button>
+      </div>
     </div>
-    <div class="form-group">
-      <label>{{ form.status.label }}</label>
-      {{ form.status }}{{ form.status.errors }}
+    
+    <div class="score-preview-sticky" style="position: sticky; top: 80px;">
+      <div class="score-preview-box" aria-live="polite">
+        <div>
+          <div class="eyebrow">DREAD SCORE</div>
+          <div class="score-preview-box__val" id="preview-score" style="color: var(--risk-medium);">5.0</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="eyebrow" style="margin-bottom: 4px;">RISK LEVEL</div>
+          <span class="risk-pill" id="preview-pill" style="padding: 4px 12px; font-size: 13px; background: rgba(255,197,61,0.12); border: 1px solid #FFC53D; color: #FFC53D;">
+            <span class="risk-pill__glyph" aria-hidden="true" id="preview-glyph">■</span>
+            <span id="preview-level">Medium</span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="glass-card" style="padding: 16px 18px;">
+        <h2 class="eyebrow" style="margin-bottom: 12px;">DREAD Scale</h2>
+        <div class="flex-col gap-1">
+          <div class="flex justify-between" style="font-size: 11px;">
+            <span class="font-mono" style="color: var(--text-muted);">≥ 8.0</span>
+            <span style="font-weight: 600; color: var(--risk-critical);">Critical</span>
+          </div>
+          <div class="flex justify-between" style="font-size: 11px;">
+            <span class="font-mono" style="color: var(--text-muted);">6.0 – 7.9</span>
+            <span style="font-weight: 600; color: var(--risk-high);">High</span>
+          </div>
+          <div class="flex justify-between" style="font-size: 11px;">
+            <span class="font-mono" style="color: var(--text-muted);">4.0 – 5.9</span>
+            <span style="font-weight: 600; color: var(--risk-medium);">Medium</span>
+          </div>
+          <div class="flex justify-between" style="font-size: 11px;">
+            <span class="font-mono" style="color: var(--text-muted);">&lt; 4.0</span>
+            <span style="font-weight: 600; color: var(--risk-low);">Low</span>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <button type="submit" class="btn btn-primary">Save Threat</button>
-    <a href="{% url 'project_detail' project.pk %}" class="btn">Cancel</a>
   </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.js-rating').forEach(function(el) {
+    el.style.display = 'block';
+  });
+
+  const getFactorColor = (val) => {
+    if (val >= 8) return '#FF3D71';
+    if (val >= 6) return '#FF8A3D';
+    if (val >= 4) return '#FFC53D';
+    return '#22D3A5';
+  };
+
+  const getRiskInfo = (score) => {
+    if (score >= 8.0) return { level: 'Critical', color: '#FF3D71', tint: 'rgba(255,61,113,0.12)', glyph: '◆' };
+    if (score >= 6.0) return { level: 'High', color: '#FF8A3D', tint: 'rgba(255,138,61,0.12)', glyph: '▲' };
+    if (score >= 4.0) return { level: 'Medium', color: '#FFC53D', tint: 'rgba(255,197,61,0.12)', glyph: '■' };
+    return { level: 'Low', color: '#22D3A5', tint: 'rgba(34,211,165,0.12)', glyph: '●' };
+  };
+
+  const hexToRgba = (hex, alpha) => {
+    let r = parseInt(hex.slice(1, 3), 16),
+        g = parseInt(hex.slice(3, 5), 16),
+        b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  };
+
+  const ratings = document.querySelectorAll('[data-rating]');
+  
+  const updateScorePreview = () => {
+    let total = 0;
+    ratings.forEach(r => {
+      const input = r.querySelector('input[type="hidden"]');
+      total += parseInt(input.value) || 5;
+    });
+    const score = total / 5;
+    const info = getRiskInfo(score);
+    
+    document.getElementById('preview-score').textContent = score.toFixed(1);
+    document.getElementById('preview-score').style.color = info.color;
+    
+    const pill = document.getElementById('preview-pill');
+    pill.style.background = info.tint;
+    pill.style.borderColor = info.color;
+    pill.style.color = info.color;
+    
+    document.getElementById('preview-glyph').textContent = info.glyph;
+    document.getElementById('preview-level').textContent = info.level;
+  };
+
+  ratings.forEach(container => {
+    const input = container.querySelector('input[type="hidden"]');
+    const strip = container.querySelector('.rating__strip');
+    const segs = container.querySelectorAll('.rating__seg');
+    const valDisplay = container.querySelector('[data-value]');
+    const badge = container.querySelector('[data-badge]');
+    
+    const updateUI = (val) => {
+      const color = getFactorColor(val);
+      valDisplay.textContent = val;
+      valDisplay.style.color = color;
+      
+      badge.style.color = color;
+      badge.style.background = hexToRgba(color, 0.18);
+      badge.style.borderColor = hexToRgba(color, 0.4);
+      
+      strip.setAttribute('aria-valuenow', val);
+      input.value = val;
+      
+      segs.forEach((seg, i) => {
+        const segVal = i + 1;
+        if (segVal <= val) {
+          const segCol = getFactorColor(segVal);
+          seg.style.background = segCol;
+          seg.style.borderColor = hexToRgba(segCol, 0.6);
+        } else {
+          seg.style.background = 'rgba(255,255,255,0.07)';
+          seg.style.borderColor = 'rgba(255,255,255,0.06)';
+        }
+      });
+      
+      updateScorePreview();
+    };
+
+    segs.forEach((seg, i) => {
+      seg.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateUI(i + 1);
+      });
+    });
+
+    strip.addEventListener('keydown', (e) => {
+      let val = parseInt(input.value);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (val < 10) updateUI(val + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (val > 1) updateUI(val - 1);
+      }
+    });
+
+    // Initialize
+    updateUI(parseInt(input.value) || 5);
+  });
+});
+</script>
 {% endblock %}

@@ -2,33 +2,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}DREAD Analysis{% endblock %} | ThreatScope</title>
-  <link rel="stylesheet" href="{% static 'analysis/css/style.css' %}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ThreatScope{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'analysis/css/threatscope.css' %}">
+  <script>
+    (function() {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
 </head>
-<body>
-  <div class="navbar">
-    <a class="brand" href="{% url 'dashboard' %}"><span class="shield">&#128737;</span> ThreatScope DREAD</a>
-    <nav>
-      {% if user.is_authenticated %}
-        <a href="{% url 'dashboard' %}">Dashboard</a>
-        <a href="{% url 'project_list' %}">Projects</a>
-        <a href="{% url 'logout' %}">Logout ({{ user.username }})</a>
-      {% else %}
-        <a href="{% url 'login' %}">Login</a>
-        <a href="{% url 'signup' %}">Sign Up</a>
-      {% endif %}
-    </nav>
-  </div>
-
-  <div class="container">
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  {% if user.is_authenticated %}
+    {% include "analysis/_nav.html" %}
+  {% endif %}
+  
+  {% include "analysis/_flash.html" %}
+  
+  <div class="page-shell" style="padding-top: {% if user.is_authenticated %}56px{% else %}0{% endif %}">
     {% block content %}{% endblock %}
   </div>
+  
+  {% block extra_js %}{% endblock %}
+  
+  <script>
+    function updateThemeIcons() {
+      var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      var sun = document.getElementById('theme-icon-sun');
+      var moon = document.getElementById('theme-icon-moon');
+      if (sun && moon) {
+        if (currentTheme === 'dark') {
+          sun.style.display = 'block';
+          moon.style.display = 'none';
+        } else {
+          sun.style.display = 'none';
+          moon.style.display = 'block';
+        }
+      }
+    }
+
+    function toggleTheme() {
+      var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcons();
+    }
+    
+    // Set initial icon on load
+    document.addEventListener('DOMContentLoaded', updateThemeIcons);
+  </script>
 </body>
 </html>

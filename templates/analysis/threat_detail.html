@@ -1,54 +1,135 @@
-{% extends 'analysis/base.html' %}
-{% block title %}{{ threat.title }}{% endblock %}
+{% extends "analysis/base.html" %}
+{% load threatscope %}
+
+{% block title %}{{ threat.title }} | ThreatScope{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>{{ threat.title }}</h1>
-    <p class="subtitle">Project: <a href="{% url 'project_detail' threat.project.pk %}">{{ threat.project.name }}</a> &middot; {{ threat.get_stride_category_display }}</p>
+<div class="page-container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 24px;">
+    <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 6px;">
+      <li><a href="{% url 'project_list' %}" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">Projects</a></li>
+      <li style="font-size: 12px; color: var(--text-disabled);" aria-hidden="true">/</li>
+      <li><a href="{% url 'project_detail' pk=threat.project.pk %}" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">{{ threat.project.name }}</a></li>
+      <li style="font-size: 12px; color: var(--text-disabled);" aria-hidden="true">/</li>
+      <li><a href="{% url 'threat_detail' pk=threat.pk %}" aria-current="page" style="font-size: 13px; font-weight: 500; color: var(--text-secondary); text-decoration: none;">Threat detail</a></li>
+    </ol>
+  </nav>
+
+  <header class="flex justify-between items-start gap-6 mb-8" style="flex-wrap: wrap;">
+    <div>
+      <div class="flex gap-2" style="flex-wrap: wrap; margin-bottom: 12px;">
+        <span class="risk-pill" aria-label="Risk level: {{ threat.risk_level }}" style="background: {{ threat.risk_level|risk_tint }}; border: 1px solid {{ threat.risk_level|risk_color }}; color: {{ threat.risk_level|risk_color }};">
+          <span class="risk-pill__glyph" aria-hidden="true">{{ threat.risk_level|risk_glyph }}</span>{{ threat.risk_level }}
+        </span>
+        <span class="status-chip" aria-label="Status: {{ threat.get_status_display }}" style="background: {{ threat.get_status_display|status_bg }}; border: 1px solid {{ threat.get_status_display|status_color }}33; color: {{ threat.get_status_display|status_color }};">
+          <span class="status-chip__dot" aria-hidden="true"></span>{{ threat.get_status_display }}
+        </span>
+        {% if threat.stride_category %}
+        <span class="stride-tag"><span class="stride-tag__abbr">{{ threat.stride_category|stride_abbr }}</span> {{ threat.stride_category }}</span>
+        {% endif %}
+      </div>
+      <h1 class="font-display" style="font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -0.01em;">{{ threat.title }}</h1>
+      <div class="meta-mono" style="margin-top: 6px;">
+        Created {{ threat.created_at|date:"M j, Y" }} · Updated {{ threat.updated_at|date:"M j, Y" }}
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'threat_edit' pk=threat.pk %}" class="btn btn--secondary btn--sm">Edit threat</a>
+      <a href="{% url 'threat_delete' pk=threat.pk %}" class="btn btn--danger btn--sm">Delete</a>
+    </div>
+  </header>
+
+  <div class="glass-card mb-8" style="padding: 32px 32px 24px;">
+    <div class="flex items-end gap-6 mb-8" style="flex-wrap: wrap;">
+      <div>
+        <div class="eyebrow" style="margin-bottom: 4px;">DREAD SCORE</div>
+        <div class="font-mono" style="font-size: 56px; font-weight: 600; letter-spacing: -0.02em; color: {{ threat.risk_level|risk_color }};" aria-label="DREAD score: {{ threat.dread_score|floatformat:1 }} out of 10">{{ threat.dread_score|floatformat:1 }}</div>
+      </div>
+      <div class="font-mono" style="font-size: 16px; color: var(--text-muted); margin-bottom: 10px;">/10</div>
+      
+      <div class="flex" style="margin-left: 8px; margin-bottom: 8px; gap: 16px;">
+        <div class="flex-col items-center">
+          <div class="font-mono" style="font-size: 20px; font-weight: 600; color: var(--text-secondary);" title="Damage: {{ threat.damage }}/10">{{ threat.damage }}</div>
+          <div class="font-mono" style="font-size: 10px; letter-spacing: 0.06em; color: var(--text-disabled); margin-top: 4px;">D</div>
+        </div>
+        <div class="flex-col items-center">
+          <div class="font-mono" style="font-size: 20px; font-weight: 600; color: var(--text-secondary);" title="Reproducibility: {{ threat.reproducibility }}/10">{{ threat.reproducibility }}</div>
+          <div class="font-mono" style="font-size: 10px; letter-spacing: 0.06em; color: var(--text-disabled); margin-top: 4px;">R</div>
+        </div>
+        <div class="flex-col items-center">
+          <div class="font-mono" style="font-size: 20px; font-weight: 600; color: var(--text-secondary);" title="Exploitability: {{ threat.exploitability }}/10">{{ threat.exploitability }}</div>
+          <div class="font-mono" style="font-size: 10px; letter-spacing: 0.06em; color: var(--text-disabled); margin-top: 4px;">E</div>
+        </div>
+        <div class="flex-col items-center">
+          <div class="font-mono" style="font-size: 20px; font-weight: 600; color: var(--text-secondary);" title="Affected Users: {{ threat.affected_users }}/10">{{ threat.affected_users }}</div>
+          <div class="font-mono" style="font-size: 10px; letter-spacing: 0.06em; color: var(--text-disabled); margin-top: 4px;">A</div>
+        </div>
+        <div class="flex-col items-center">
+          <div class="font-mono" style="font-size: 20px; font-weight: 600; color: var(--text-secondary);" title="Discoverability: {{ threat.discoverability }}/10">{{ threat.discoverability }}</div>
+          <div class="font-mono" style="font-size: 10px; letter-spacing: 0.06em; color: var(--text-disabled); margin-top: 4px;">D</div>
+        </div>
+      </div>
+    </div>
+    
+    {% dread_spine_hero threat %}
   </div>
-  <div>
-    <a href="{% url 'threat_edit' threat.pk %}" class="btn">Edit</a>
-    <a href="{% url 'threat_delete' threat.pk %}" class="btn btn-danger">Delete</a>
+
+  <div class="threat-detail-grid" style="display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start;">
+    <div class="flex-col gap-6">
+      <section class="glass-card" style="padding: 24px 32px;" aria-labelledby="desc-heading">
+        <h2 id="desc-heading" class="eyebrow" style="margin-bottom: 14px;">Description</h2>
+        <div class="prose">{{ threat.description|linebreaks }}</div>
+      </section>
+      
+      <section class="glass-card" style="padding: 24px 32px;" aria-labelledby="mitigation-heading">
+        <h2 id="mitigation-heading" class="eyebrow" style="margin-bottom: 14px;">Mitigation Plan</h2>
+        <div class="prose">
+          {% if threat.mitigation %}
+            {{ threat.mitigation|linebreaks }}
+          {% else %}
+            <em style="color: var(--text-disabled)">No mitigation recorded. Add one when editing this threat.</em>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+    
+    <aside aria-label="Threat metadata" class="flex-col gap-2">
+      <div class="glass-card" style="padding: 20px;">
+        <h2 class="eyebrow" style="margin-bottom: 16px;">Details</h2>
+        <div class="flex-col gap-4">
+          <div>
+            <div style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-disabled); margin-bottom: 4px;">Project</div>
+            <div><a href="{% url 'project_detail' pk=threat.project.pk %}" class="focus-ring" style="font-size: 13px; font-weight: 500; color: var(--accent-hover); text-decoration: none;">{{ threat.project.name }}</a></div>
+          </div>
+          <div>
+            <div style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-disabled); margin-bottom: 4px;">Status</div>
+            <span class="status-chip" aria-label="Status: {{ threat.get_status_display }}" style="background: {{ threat.get_status_display|status_bg }}; border: 1px solid {{ threat.get_status_display|status_color }}33; color: {{ threat.get_status_display|status_color }};">
+              <span class="status-chip__dot" aria-hidden="true"></span>{{ threat.get_status_display }}
+            </span>
+          </div>
+          <div>
+            <div style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-disabled); margin-bottom: 4px;">Risk</div>
+            <span class="risk-pill risk-pill--compact" aria-label="Risk level: {{ threat.risk_level }}" style="background: {{ threat.risk_level|risk_tint }}; border: 1px solid {{ threat.risk_level|risk_color }}; color: {{ threat.risk_level|risk_color }};">
+              <span class="risk-pill__glyph" aria-hidden="true">{{ threat.risk_level|risk_glyph }}</span>{{ threat.risk_level }}
+            </span>
+          </div>
+          {% if threat.stride_category %}
+          <div>
+            <div style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-disabled); margin-bottom: 4px;">STRIDE</div>
+            <span class="stride-tag"><span class="stride-tag__abbr">{{ threat.stride_category|stride_abbr }}</span> {{ threat.stride_category }}</span>
+          </div>
+          {% endif %}
+          <div>
+            <div style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-disabled); margin-bottom: 4px;">Created</div>
+            <div class="font-mono" style="font-size: 12px; color: var(--text-secondary);">{{ threat.created_at|date:"M j, Y g:i a" }}</div>
+          </div>
+          <div>
+            <div style="font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-disabled); margin-bottom: 4px;">Updated</div>
+            <div class="font-mono" style="font-size: 12px; color: var(--text-secondary);">{{ threat.updated_at|date:"M j, Y g:i a" }}</div>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
-
-<div class="card" style="display:flex; align-items:center; gap:28px; flex-wrap:wrap;">
-  <div>
-    <div class="score-display" style="color:{{ threat.risk_color }};">{{ threat.dread_score }}</div>
-    <div class="help-text">DREAD Score / 10</div>
-  </div>
-  <div>
-    <span class="badge badge-{{ threat.risk_level|lower }}" style="font-size:1rem; padding:6px 16px;">{{ threat.risk_level }} Risk</span>
-  </div>
-  <div>
-    <span class="badge badge-status">{{ threat.get_status_display }}</span>
-  </div>
-</div>
-
-<div class="card">
-  <strong>Rating Breakdown</strong>
-  <div style="margin-top:10px;">
-    <div class="dread-breakdown-row"><span>Damage</span><strong>{{ threat.damage }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Reproducibility</span><strong>{{ threat.reproducibility }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Exploitability</span><strong>{{ threat.exploitability }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Affected Users</span><strong>{{ threat.affected_users }}/10</strong></div>
-    <div class="dread-breakdown-row"><span>Discoverability</span><strong>{{ threat.discoverability }}/10</strong></div>
-  </div>
-</div>
-
-{% if threat.description %}
-<div class="card">
-  <strong>Description</strong>
-  <p style="margin-bottom:0; margin-top:8px; color:var(--text-dim);">{{ threat.description|linebreaks }}</p>
-</div>
-{% endif %}
-
-{% if threat.mitigation %}
-<div class="card">
-  <strong>Mitigation Plan</strong>
-  <p style="margin-bottom:0; margin-top:8px; color:var(--text-dim);">{{ threat.mitigation|linebreaks }}</p>
-</div>
-{% endif %}
-
-<p class="help-text">Created by {{ threat.created_by }} on {{ threat.created_at|date:"M d, Y" }} &middot; Last updated {{ threat.updated_at|date:"M d, Y" }}</p>
 {% endblock %}

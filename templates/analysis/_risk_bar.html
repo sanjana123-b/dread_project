@@ -1,0 +1,19 @@
+{% if total %}
+<div class="risk-bar" role="img" aria-label="{{ aria }}">
+  {% for s in segments %}
+    {% if s.count %}
+      <div class="risk-bar__seg" style="flex: 0 0 {{ s.pct|floatformat:2 }}%; background: {{ s.color }}" title="{{ s.level }}: {{ s.count }} ({{ s.pct|floatformat:0 }}%)"></div>
+    {% endif %}
+  {% endfor %}
+</div>
+<div class="risk-bar__legend">
+  {% for s in segments %}
+    <div class="risk-bar__legend-item">
+      <span class="risk-bar__swatch" style="background: {{ s.color }}" aria-hidden="true"></span>
+      <span class="risk-bar__legend-text">{{ s.count }} {{ s.level }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="risk-bar risk-bar--empty"></div>
+{% endif %}

@@ -1,79 +1,158 @@
-{% extends 'analysis/base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% extends "analysis/base.html" %}
+{% load threatscope %}
+
+{% block title %}Dashboard | ThreatScope{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1>Dashboard</h1>
-    <p class="subtitle">Overview of all your threat models</p>
-  </div>
-  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
-</div>
+<div class="page-container">
+  <header class="flex justify-between items-center mb-8 gap-4" style="flex-wrap: wrap;">
+    <div>
+      <h1 class="font-display" style="font-size: 28px; font-weight: 600; letter-spacing: -0.01em;">
+        Welcome back, {{ user.first_name|default:user.username }}.
+      </h1>
+      <p style="margin-top: 4px; font-size: 14px; color: var(--text-muted);">
+        {% if projects.count > 0 %}
+          {{ projects.count }} project{{ projects.count|pluralize }} · {{ total_threats }} threat{{ total_threats|pluralize }} tracked
+        {% else %}
+          You have no projects yet. Create one to start modelling threats.
+        {% endif %}
+      </p>
+    </div>
+    <a href="{% url 'project_create' %}" class="btn btn--primary btn--md btn--glow">
+      <span aria-hidden="true">+</span> New project
+    </a>
+  </header>
 
-<div class="stat-grid">
-  <div class="stat-card"><div class="num">{{ projects.count }}</div><div class="label">Projects</div></div>
-  <div class="stat-card"><div class="num">{{ total_threats }}</div><div class="label">Total Threats</div></div>
-  <div class="stat-card critical"><div class="num">{{ critical_count }}</div><div class="label">Critical Risks</div></div>
-  <div class="stat-card high"><div class="num">{{ high_count }}</div><div class="label">High Risks</div></div>
-  <div class="stat-card"><div class="num">{{ open_count }}</div><div class="label">Open Threats</div></div>
-</div>
+  <main id="main-content">
+    {% if projects.count == 0 and total_threats == 0 %}
+      <div class="stat-grid mb-8" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">Total Projects</span>
+          <span class="stat-card__value">0</span>
+        </div>
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">Total Threats</span>
+          <span class="stat-card__value">0</span>
+        </div>
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">Critical Risks</span>
+          <span class="stat-card__value">0</span>
+        </div>
+        <div class="glass-card stat-card" style="opacity: 0.4;" aria-hidden="true">
+          <span class="stat-card__label">High Risks</span>
+          <span class="stat-card__value">0</span>
+        </div>
+      </div>
+      
+      <div class="glass-card flex-col items-center" style="padding: 64px 32px; text-align: center; gap: 16px;">
+        <h2 class="font-display" style="font-size: 18px; font-weight: 600; color: var(--text-primary);">No projects yet</h2>
+        <p style="font-size: 14px; line-height: 22px; color: var(--text-muted); max-width: 340px; margin-top: 6px;">
+          Create your first project to start cataloguing threats and calculating DREAD scores.
+        </p>
+        <a href="{% url 'project_create' %}" class="btn btn--primary btn--lg btn--glow">
+          <span aria-hidden="true">+</span> Create first project
+        </a>
+      </div>
+    {% else %}
+      <div class="stat-grid mb-8" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">Total Projects</span>
+          <span class="stat-card__value">{{ projects.count }}</span>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">Total Threats</span>
+          <span class="stat-card__value">{{ total_threats }}</span>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">Critical Risks</span>
+          <div class="stat-card__row">
+            <span class="stat-card__value" {% if risk_counts.Critical %}style="color: var(--risk-critical);"{% endif %}>{{ risk_counts.Critical|default:0 }}</span>
+            {% if risk_counts.Critical %}
+            <span class="stat-card__delta font-mono" style="color: var(--risk-critical);" aria-label="{{ risk_counts.Critical }} open">↑ {{ risk_counts.Critical }} open</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-card__label">High Risks</span>
+          <div class="stat-card__row">
+            <span class="stat-card__value" {% if risk_counts.High %}style="color: var(--risk-high);"{% endif %}>{{ risk_counts.High|default:0 }}</span>
+          </div>
+        </div>
+      </div>
 
-{% if total_threats > 0 %}
-<div class="card">
-  <strong>Risk Distribution</strong>
-  <div class="risk-bar">
-    {% if overall_breakdown.Critical %}<div style="background:#dc2626; width:{% widthratio overall_breakdown.Critical total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.High %}<div style="background:#f97316; width:{% widthratio overall_breakdown.High total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.Medium %}<div style="background:#eab308; width:{% widthratio overall_breakdown.Medium total_threats 100 %}%"></div>{% endif %}
-    {% if overall_breakdown.Low %}<div style="background:#22c55e; width:{% widthratio overall_breakdown.Low total_threats 100 %}%"></div>{% endif %}
-  </div>
-  <div style="display:flex; gap:16px; margin-top:10px; font-size:0.85rem; color:var(--text-dim);">
-    <span>&#9679; Critical: {{ overall_breakdown.Critical }}</span>
-    <span>&#9679; High: {{ overall_breakdown.High }}</span>
-    <span>&#9679; Medium: {{ overall_breakdown.Medium }}</span>
-    <span>&#9679; Low: {{ overall_breakdown.Low }}</span>
-  </div>
-</div>
-{% endif %}
+      <div class="glass-card mb-8" style="padding: 24px;">
+        <h2 class="font-display" style="font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;">Risk Distribution</h2>
+        {% risk_bar risk_counts %}
+      </div>
 
-{% if top_threats %}
-<div class="card">
-  <strong>Top 5 Highest-Risk Threats</strong>
-  <table style="margin-top:10px;">
-    <thead><tr><th>Threat</th><th>Project</th><th>Score</th><th>Level</th></tr></thead>
-    <tbody>
-    {% for t in top_threats %}
-      <tr>
-        <td><a href="{% url 'threat_detail' t.pk %}">{{ t.title }}</a></td>
-        <td>{{ t.project.name }}</td>
-        <td>{{ t.dread_score }}</td>
-        <td><span class="badge badge-{{ t.risk_level|lower }}">{{ t.risk_level }}</span></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
+      <div class="glass-card" style="overflow: hidden;">
+        <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-hairline);" class="flex justify-between items-center">
+          <h2 class="font-display" style="font-size: 16px; font-weight: 600;">Top 5 Highest-Risk Threats</h2>
+          <a href="{% url 'project_list' %}" class="btn btn--ghost btn--sm">View all →</a>
+        </div>
+        
+        <table class="data-table threat-table-desktop">
+          <thead>
+            <tr>
+              <th scope="col">Threat</th>
+              <th scope="col">Project</th>
+              <th scope="col">DREAD</th>
+              <th scope="col" class="is-right">Score</th>
+              <th scope="col">Risk</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for threat in top_threats|slice:":5" %}
+            <tr onclick="window.location='{% url 'threat_detail' pk=threat.pk %}'">
+              <td>
+                <a href="{% url 'threat_detail' pk=threat.pk %}" class="cell-title">{{ threat.title }}</a>
+              </td>
+              <td style="font-size: 12px; color: var(--text-muted);">{{ threat.project.name }}</td>
+              <td>{% dread_spine_micro threat %}</td>
+              <td class="is-right">
+                <span class="cell-score" style="color: {{ threat.risk_level|risk_color }};">{{ threat.dread_score|floatformat:1 }}</span>
+              </td>
+              <td>
+                <span class="risk-pill risk-pill--compact" aria-label="Risk level: {{ threat.risk_level }}" style="background: {{ threat.risk_level|risk_tint }}; border: 1px solid {{ threat.risk_level|risk_color }}; color: {{ threat.risk_level|risk_color }};">
+                  <span class="risk-pill__glyph" aria-hidden="true">{{ threat.risk_level|risk_glyph }}</span>{{ threat.risk_level }}
+                </span>
+              </td>
+              <td>
+                <span class="status-chip" aria-label="Status: {{ threat.get_status_display }}" style="background: {{ threat.get_status_display|status_bg }}; border: 1px solid {{ threat.get_status_display|status_color }}33; color: {{ threat.get_status_display|status_color }};">
+                  <span class="status-chip__dot" aria-hidden="true"></span>{{ threat.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No threats found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-<h2 style="font-size:1.2rem; margin-top:32px;">Your Projects</h2>
-{% if projects %}
-<table>
-  <thead><tr><th>Name</th><th>Threats</th><th>Avg Risk</th><th>Updated</th><th></th></tr></thead>
-  <tbody>
-  {% for p in projects %}
-    <tr>
-      <td><a href="{% url 'project_detail' p.pk %}">{{ p.name }}</a></td>
-      <td>{{ p.threat_count }}</td>
-      <td>{{ p.average_risk }}</td>
-      <td>{{ p.updated_at|date:"M d, Y" }}</td>
-      <td><a href="{% url 'project_detail' p.pk %}" class="btn btn-sm">View</a></td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<div class="empty-state">
-  <p>No projects yet. Create your first threat model to get started.</p>
-  <a href="{% url 'project_create' %}" class="btn btn-primary">+ New Project</a>
+        <div class="threat-table-mobile">
+          {% for threat in top_threats|slice:":5" %}
+          <a href="{% url 'threat_detail' pk=threat.pk %}" style="display: flex; flex-direction: column; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border-hairline); text-decoration: none;" class="focus-ring">
+            <div style="font-size: 13px; font-weight: 500; line-height: 20px; color: var(--text-primary);">{{ threat.title }}</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              {% dread_spine_micro threat %}
+              <span class="font-mono" style="font-size: 13px; font-weight: 600; color: {{ threat.risk_level|risk_color }};">{{ threat.dread_score|floatformat:1 }}</span>
+              <span class="risk-pill risk-pill--compact" aria-label="Risk level: {{ threat.risk_level }}" style="background: {{ threat.risk_level|risk_tint }}; border: 1px solid {{ threat.risk_level|risk_color }}; color: {{ threat.risk_level|risk_color }};">
+                <span class="risk-pill__glyph" aria-hidden="true">{{ threat.risk_level|risk_glyph }}</span>{{ threat.risk_level }}
+              </span>
+              <span class="status-chip" aria-label="Status: {{ threat.get_status_display }}" style="background: {{ threat.get_status_display|status_bg }}; border: 1px solid {{ threat.get_status_display|status_color }}33; color: {{ threat.get_status_display|status_color }};">
+                <span class="status-chip__dot" aria-hidden="true"></span>{{ threat.get_status_display }}
+              </span>
+            </div>
+          </a>
+          {% empty %}
+          <div style="text-align: center; color: var(--text-muted); padding: 24px;">No threats found.</div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </main>
 </div>
-{% endif %}
 {% endblock %}
